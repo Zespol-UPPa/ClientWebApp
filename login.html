@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ParkFlow - Sign In</title>
+    <link rel="stylesheet" href="login.css">
+</head>
+<body>
+    <div class="phone-container">
+        <div class="login-container">
+            <div class="logo-section">
+                <div class="logo-wrapper">
+                    <img src="resources/ParkFlowPurpleIcon.png" alt="ParkFlow" class="logo-icon">
+                    <span class="logo-text">ParkFl<span class="logo-o">@</span>w</span>
+                </div>
+            </div>
+
+            <p class="welcome-text">Welcome back! Sign in and start.</p>
+
+            <form id="loginForm" class="login-form">
+                <div class="input-group">
+                    <img src="resources/mailIcon.png" alt="Email" class="input-icon">
+                    <input 
+                        type="email" 
+                        id="emailInput" 
+                        class="form-input" 
+                        placeholder="e-mail" 
+                        required
+                        autocomplete="email"
+                    >
+                </div>
+
+                <div class="input-group">
+                    <img src="resources/lockIcon.png" alt="Password" class="input-icon">
+                    <input 
+                        type="password" 
+                        id="passwordInput" 
+                        class="form-input" 
+                        placeholder="password" 
+                        required
+                        autocomplete="current-password"
+                    >
+                </div>
+
+                <div id="errorMessage" class="error-message" style="display: none;"></div>
+
+                <button type="submit" class="sign-in-btn" id="signInBtn">
+                    Sign in
+                </button>
+            </form>
+
+            <div class="signup-link">
+                <span>Don't have an account yet? </span>
+                <a href="#" id="signUpLink" class="signup-link-text">Sign up</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="login.js"></script>
+</body>
+</html>
+
