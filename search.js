@@ -167,9 +167,30 @@ function showErrorState(message) {
 
 
 document.addEventListener('DOMContentLoaded', async function() {
+    const logoLink = document.getElementById('logoLink');
+    if (logoLink) {
+        const handleLogoNavigation = function() {
+            const authToken = localStorage.getItem('authToken');
+            if (authToken) {
+                window.location.href = 'dashboard.html';
+            } else {
+                window.location.href = 'home.html';
+            }
+        };
+        
+        logoLink.addEventListener('click', handleLogoNavigation);
+        logoLink.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                handleLogoNavigation();
+            }
+        });
+    }
+
     const searchInput = document.getElementById('searchInput');
     const filterButtons = document.querySelectorAll('.filter-btn');
     const parkingContainer = document.getElementById('parkingContainer');
+    setupBottomNavigation();
 
     parkingData = await loadParkings();
     renderParkings(parkingData);
@@ -240,13 +261,18 @@ document.addEventListener('DOMContentLoaded', async function() {
                         <span class="price">$${parking.pricePerHour.toFixed(2)}/hour</span>
                     </div>
                 </div>
-                <button class="details-btn">Details</button>
+                <div class="card-buttons">
+                    <button class="details-btn">Details</button>
+                    ${isUserLoggedIn() ? `<button class="reserve-btn">Reserve now</button>` : ''}
+                </div>
             </div>
         `).join('');
 
         document.querySelectorAll('.parking-card').forEach(card => {
             card.addEventListener('click', function(e) {
-                if (e.target.classList.contains('map-icon') || e.target.classList.contains('details-btn')) {
+                if (e.target.classList.contains('map-icon') || 
+                    e.target.classList.contains('details-btn') || 
+                    e.target.classList.contains('reserve-btn')) {
                     return;
                 }
                 const parkingId = parseInt(this.getAttribute('data-id'));
@@ -271,6 +297,16 @@ document.addEventListener('DOMContentLoaded', async function() {
                 handleMapClick(parkingId);
             });
         });
+        if (isUserLoggedIn()) {
+            document.querySelectorAll('.reserve-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const card = this.closest('.parking-card');
+                    const parkingId = parseInt(card.getAttribute('data-id'));
+                    handleReserveClick(parkingId);
+                });
+            });
+        }
     }
 
     function handleParkingClick(parkingId) {
@@ -290,6 +326,13 @@ document.addEventListener('DOMContentLoaded', async function() {
         const parking = parkingData.find(p => p.id === parkingId);
         console.log('Map clicked for:', parking);
 
+    }
+
+    function handleReserveClick(parkingId) {
+        const parking = parkingData.find(p => p.id === parkingId);
+        if (parking) {
+            openReserveModal(parking);
+        }
     }
     
     // automatyczne odświeżanie danych co X sekund
@@ -449,10 +492,6 @@ async function loadAndDrawChart(parkingId) {
     window.removeEventListener('resize', resizeHandler);
     window.addEventListener('resize', resizeHandler);
 }
-
-/**
- * Rysuje wykres na canvas
- */
 function drawChart(ctx, data, width, height) {
     const padding = { top: 20, right: 20, bottom: 40, left: 40 };
     const chartWidth = width - padding.left - padding.right;
@@ -532,5 +571,279 @@ function drawChart(ctx, data, width, height) {
         const x = scaleX(index);
         ctx.fillText(hour, x, padding.top + chartHeight + 8);
     });
+}
+
+
+function isUserLoggedIn() {
+
+    const authToken = localStorage.getItem('authToken');
+
+    return !!authToken;
+}
+
+function setupBottomNavigation() {
+    const loggedInNav = document.getElementById('loggedInNav');
+    const loggedOutNav = document.getElementById('loggedOutNav');
+    const loggedInNavHeader = document.getElementById('loggedInNavHeader');
+    const loggedOutNavHeader = document.getElementById('loggedOutNavHeader');
+    const isLoggedIn = isUserLoggedIn();
+
+    if (isLoggedIn) {
+        loggedInNav.style.display = 'flex';
+        loggedOutNav.style.display = 'none';
+        loggedInNavHeader.style.display = 'block';
+        loggedOutNavHeader.style.display = 'none';
+        setupLoggedInNavigation();
+        setupLoggedInHeader();
+    } else {
+        loggedInNav.style.display = 'none';
+        loggedOutNav.style.display = 'flex';
+        loggedInNavHeader.style.display = 'none';
+        loggedOutNavHeader.style.display = 'flex';
+        setupLoggedOutNavigation();
+    }
+}
+
+function setupLoggedInNavigation() {
+    const navItems = document.querySelectorAll('.logged-in-nav .nav-item');
+    
+    navItems.forEach(item => {
+        item.addEventListener('click', function() {
+            const page = this.getAttribute('data-page');
+            handleLoggedInNavigation(page, this);
+        });
+    });
+}
+
+function handleLoggedInNavigation(page, clickedItem) {
+    document.querySelectorAll('.logged-in-nav .nav-item').forEach(item => {
+        item.classList.remove('active');
+    });
+    clickedItem.classList.add('active');
+    switch(page) {
+        case 'dashboard':
+            window.location.href = 'dashboard.html';
+            break;
+        case 'parking':
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            break;
+        case 'wallet':
+            window.location.href = 'wallet.html';
+            break;
+        case 'history':
+            window.location.href = 'history.html';
+            break;
+        case 'profile':
+            window.location.href = 'profile.html';
+            break;
+    }
+}
+
+function setupLoggedOutNavigation() {
+    const backToHomeBtn = document.getElementById('backToHomeBtn');
+    
+    if (backToHomeBtn) {
+        backToHomeBtn.addEventListener('click', function() {
+            window.location.href = 'home.html';
+        });
+    }
+
+
+    const getStartedBtn = document.querySelector('.get-started-btn');
+    if (getStartedBtn) {
+        getStartedBtn.addEventListener('click', function() {
+            window.location.href = 'register.html';
+        });
+    }
+}
+
+function setupLoggedInHeader() {
+    const userIconBtn = document.getElementById('loggedInNavHeader');
+    
+    if (userIconBtn) {
+        userIconBtn.addEventListener('click', function() {
+            window.location.href = 'profile.html';
+        });
+    }
+}
+
+
+let vehicles = [];
+
+async function openReserveModal(parking) {
+    const modal = document.getElementById('reserveModal');
+    const parkingLocationInput = document.getElementById('reserveParkingLocation');
+    const vehicleSelect = document.getElementById('reserveVehicleSelect');
+    const dateInput = document.getElementById('reserveDateInput');
+    const closeBtn = document.getElementById('closeReserveModal');
+    const reserveForm = document.getElementById('reserveForm');
+
+    parkingLocationInput.value = parking.name;
+
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const minDate = tomorrow.toISOString().split('T')[0];
+    dateInput.min = minDate;
+    dateInput.value = minDate;
+
+    await loadVehicles();
+    populateVehicleSelect();
+
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+
+    closeBtn.onclick = closeReserveModal;
+    modal.onclick = function(e) {
+        if (e.target === modal) {
+            closeReserveModal();
+        }
+    };
+
+    reserveForm.onsubmit = async function(e) {
+        e.preventDefault();
+        await handleReserveSubmit(parking);
+    };
+    document.addEventListener('keydown', function escHandler(e) {
+        if (e.key === 'Escape' && modal.classList.contains('active')) {
+            closeReserveModal();
+            document.removeEventListener('keydown', escHandler);
+        }
+    });
+}
+
+function closeReserveModal() {
+    const modal = document.getElementById('reserveModal');
+    modal.classList.remove('active');
+    document.body.style.overflow = '';
+    document.getElementById('reserveForm').reset();
+    document.getElementById('reserveErrorMessage').style.display = 'none';
+}
+
+async function loadVehicles() {
+    if (USE_API && API_BASE_URL) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/vehicles`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            vehicles = data.vehicles || [];
+        } catch (error) {
+            console.error('Error loading vehicles:', error);
+            vehicles = [];
+        }
+    } else {
+        vehicles = [
+            { id: 1, plate: 'KK971PL' },
+            { id: 2, plate: 'WA12345' }
+        ];
+    }
+}
+
+function populateVehicleSelect() {
+    const vehicleSelect = document.getElementById('reserveVehicleSelect');
+    vehicleSelect.innerHTML = '<option value="">Choose a vehicle...</option>';
+    
+    vehicles.forEach(vehicle => {
+        const option = document.createElement('option');
+        option.value = vehicle.id;
+        option.textContent = vehicle.plate;
+        vehicleSelect.appendChild(option);
+    });
+}
+
+async function handleReserveSubmit(parking) {
+    const vehicleSelect = document.getElementById('reserveVehicleSelect');
+    const dateInput = document.getElementById('reserveDateInput');
+    const errorMessage = document.getElementById('reserveErrorMessage');
+    const confirmBtn = document.getElementById('confirmPayBtn');
+
+    const vehicleId = parseInt(vehicleSelect.value);
+    const date = dateInput.value;
+    if (!vehicleId) {
+        errorMessage.textContent = 'Please select a vehicle';
+        errorMessage.style.display = 'block';
+        return;
+    }
+
+    if (!date) {
+        errorMessage.textContent = 'Please select a date';
+        errorMessage.style.display = 'block';
+        return;
+    }
+    const selectedDate = new Date(date);
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(0, 0, 0, 0);
+    selectedDate.setHours(0, 0, 0, 0);
+
+    if (selectedDate < tomorrow) {
+        errorMessage.textContent = 'Reservations can only be made for tomorrow or later';
+        errorMessage.style.display = 'block';
+        return;
+    }
+
+    errorMessage.style.display = 'none';
+    confirmBtn.disabled = true;
+    confirmBtn.textContent = 'Processing...';
+
+    try {
+        const reservationFee = 5.00; 
+        await createReservation({
+            parkingId: parking.id,
+            vehicleId: vehicleId,
+            date: date,
+            reservationFee: reservationFee
+        });
+        
+        closeReserveModal();
+        alert('Reservation created successfully!');
+    } catch (error) {
+        errorMessage.textContent = error.message || 'Error creating reservation. Please try again.';
+        errorMessage.style.display = 'block';
+    } finally {
+        confirmBtn.disabled = false;
+        confirmBtn.textContent = `Confirm & Pay $5.00`;
+    }
+}
+
+async function createReservation(reservationData) {
+    if (USE_API && API_BASE_URL) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/reservations`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(reservationData)
+            });
+
+            if (!response.ok) {
+                if (response.status === 402) {
+                    throw new Error('Insufficient wallet balance');
+                }
+                if (response.status === 409) {
+                    throw new Error('You already have a reservation for this date');
+                }
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Error creating reservation:', error);
+            throw error;
+        }
+    } else {
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        return { success: true, reservationId: Date.now() };
+    }
 }
 

@@ -1,8 +1,28 @@
 document.addEventListener('DOMContentLoaded', function() {
+    const logoLink = document.getElementById('logoLink');
+    if (logoLink) {
+        const handleLogoNavigation = function() {
+            const authToken = localStorage.getItem('authToken');
+            if (authToken) {
+                window.location.href = 'dashboard.html';
+            } else {
+                window.location.href = 'home.html';
+            }
+        };
+        
+        logoLink.addEventListener('click', handleLogoNavigation);
+        logoLink.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                handleLogoNavigation();
+            }
+        });
+    }
+
     const getStartedBtn = document.querySelector('.get-started-btn');
     if (getStartedBtn) {
         getStartedBtn.addEventListener('click', function() {
-            console.log('Get Started clicked');
+            window.location.href = 'register.html';
         });
     }
 

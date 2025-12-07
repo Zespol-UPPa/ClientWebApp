@@ -1,26 +1,28 @@
 <!DOCTYPE html>
-<html lang="pl">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Sign in to ParkFlow - Find, reserve and pay for parking in seconds">
     <title>ParkFlow - Sign In</title>
     <link rel="stylesheet" href="login.css">
 </head>
 <body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
     <div class="phone-container">
         <div class="login-container">
             <div class="logo-section">
-                <div class="logo-wrapper">
-                    <img src="resources/ParkFlowPurpleIcon.png" alt="ParkFlow" class="logo-icon">
-                    <span class="logo-text">ParkFl<span class="logo-o">@</span>w</span>
+                <div class="logo-wrapper" id="logoLink" role="button" tabindex="0" aria-label="Go to homepage">
+                    <img src="resources/ParkFlowIconPurple.svg" alt="ParkFlow logo" class="logo-icon">
                 </div>
             </div>
 
             <p class="welcome-text">Welcome back! Sign in and start.</p>
 
-            <form id="loginForm" class="login-form">
+            <form id="loginForm" class="login-form" aria-label="Sign in form">
                 <div class="input-group">
-                    <img src="resources/mailIcon.png" alt="Email" class="input-icon">
+                    <label for="emailInput" class="sr-only">Email address</label>
+                    <img src="resources/mailIcon.png" alt="" class="input-icon" aria-hidden="true">
                     <input 
                         type="email" 
                         id="emailInput" 
@@ -28,11 +30,13 @@
                         placeholder="e-mail" 
                         required
                         autocomplete="email"
+                        aria-required="true"
                     >
                 </div>
 
                 <div class="input-group">
-                    <img src="resources/lockIcon.png" alt="Password" class="input-icon">
+                    <label for="passwordInput" class="sr-only">Password</label>
+                    <img src="resources/lockIcon.png" alt="" class="input-icon" aria-hidden="true">
                     <input 
                         type="password" 
                         id="passwordInput" 
@@ -40,10 +44,11 @@
                         placeholder="password" 
                         required
                         autocomplete="current-password"
+                        aria-required="true"
                     >
                 </div>
 
-                <div id="errorMessage" class="error-message" style="display: none;"></div>
+                <div id="errorMessage" class="error-message" role="alert" aria-live="polite" style="display: none;"></div>
 
                 <button type="submit" class="sign-in-btn" id="signInBtn">
                     Sign in
@@ -52,10 +57,11 @@
 
             <div class="signup-link">
                 <span>Don't have an account yet? </span>
-                <a href="#" id="signUpLink" class="signup-link-text">Sign up</a>
+                <a href="register.html" id="signUpLink" class="signup-link-text">Sign up</a>
             </div>
         </div>
     </div>
+    <main id="main-content"></main>
 
     <script src="login.js"></script>
 </body>

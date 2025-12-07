@@ -3,6 +3,27 @@ const API_BASE_URL = null;
 const USE_API = false;
 
 document.addEventListener('DOMContentLoaded', function() {
+
+    const logoLink = document.getElementById('logoLink');
+    if (logoLink) {
+        const handleLogoNavigation = function() {
+            const authToken = localStorage.getItem('authToken');
+            if (authToken) {
+                window.location.href = 'dashboard.html';
+            } else {
+                window.location.href = 'home.html';
+            }
+        };
+        
+        logoLink.addEventListener('click', handleLogoNavigation);
+        logoLink.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                handleLogoNavigation();
+            }
+        });
+    }
+
     const loginForm = document.getElementById('loginForm');
     const emailInput = document.getElementById('emailInput');
     const passwordInput = document.getElementById('passwordInput');
@@ -36,7 +57,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if (success) {
                 console.log('Login successful');
-                window.location.href = 'home.html';
+                window.location.href = 'dashboard.html';
             } else {
                 showError('Invalid email or password. Please try again.');
             }
@@ -95,6 +116,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 const data = await response.json();
                 
+                if (data.token) {
+                    localStorage.setItem('authToken', data.token);
+                }
+                
                 return true;
             } catch (error) {
                 console.error('API login error:', error);
@@ -105,6 +130,8 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if (email === 'demo@parkflow.com' && password === 'demo123') {
                 console.log('Mock login successful');
+
+                localStorage.setItem('authToken', 'mock-token-' + Date.now());
                 return true;
             }
             

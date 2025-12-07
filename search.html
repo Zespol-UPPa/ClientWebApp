@@ -1,44 +1,173 @@
 <!DOCTYPE html>
-<html lang="pl">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Search and find available parking spots with ParkFlow - Real-time availability and easy reservations">
     <title>ParkFlow - Check Parkings</title>
     <link rel="stylesheet" href="search.css">
 </head>
 <body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
     <div class="phone-container">
-        <header class="header">
-            <div class="logo">
-                <img src="resources/ParkFlowPurpleIcon.png" alt="ParkFlow" class="logo-icon">
+        <header class="header" role="banner">
+            <div class="logo" id="logoLink" role="button" tabindex="0" aria-label="Go to homepage">
+                <img src="resources/ParkFlowIconPurple.svg" alt="ParkFlow logo" class="logo-icon">
             </div>
-            <nav class="header-nav">
+            <nav class="header-nav logged-out-nav-header" id="loggedOutNavHeader" role="navigation" aria-label="Main navigation">
                 <a href="login.html" class="sign-in-link">Sign In</a>
-                <button class="get-started-btn">Get Started</button>
+                <button class="get-started-btn" aria-label="Get started with ParkFlow">Get Started</button>
             </nav>
+            <button class="user-icon-btn logged-in-nav-header" id="loggedInNavHeader" style="display: none;" aria-label="Open user profile">
+                <img src="resources/userIcon.png" alt="" class="user-icon" aria-hidden="true">
+            </button>
         </header>
-        <section class="search-section">
+        <main id="main-content">
+        <section class="search-section" aria-labelledby="search-title">
+            <h2 id="search-title" class="sr-only">Search for parking</h2>
             <div class="search-bar">
-                <img src="resources/MagnifyingGlass.png" alt="Search" class="search-icon">
-                <input type="text" id="searchInput" class="search-input" placeholder="Cracow" value="Cracow">
+                <label for="searchInput" class="sr-only">Search location</label>
+                <img src="resources/MagnifyingGlass.png" alt="" class="search-icon" aria-hidden="true">
+                <input type="text" id="searchInput" class="search-input" placeholder="Cracow" value="Cracow" aria-label="Search for parking location">
             </div>
             
-            <div class="filters">
-                <button class="filter-btn active" data-filter="all">All</button>
-                <button class="filter-btn" data-filter="available">Available Now</button>
+            <div class="filters" role="group" aria-label="Filter parking options">
+                <button class="filter-btn active" data-filter="all" aria-pressed="true">All</button>
+                <button class="filter-btn" data-filter="available" aria-pressed="false">Available Now</button>
             </div>
         </section>
 
-        <section class="parking-list">
-            <div id="parkingContainer" class="parking-container">
+        <section class="parking-list" aria-label="Available parking spots">
+            <div id="parkingContainer" class="parking-container" role="list">
             </div>
         </section>
+        </main>
+        <nav class="bottom-nav logged-in-nav" id="loggedInNav" style="display: none;" role="navigation" aria-label="Main navigation">
+            <button class="nav-item" data-page="dashboard" id="navHome" aria-label="Go to dashboard">
+                <img src="resources/HouseIcon.png" alt="" class="nav-icon" aria-hidden="true">
+                <span class="nav-label">Home</span>
+            </button>
+            <button class="nav-item active" data-page="parking" id="navParking" aria-label="Search parking" aria-current="page">
+                <img src="resources/LetterCircleP.png" alt="" class="nav-icon" aria-hidden="true">
+                <span class="nav-label">Parking</span>
+            </button>
+            <button class="nav-item" data-page="wallet" id="navWallet" aria-label="Open wallet">
+                <img src="resources/Wallet.png" alt="" class="nav-icon" aria-hidden="true">
+                <span class="nav-label">Wallet</span>
+            </button>
+            <button class="nav-item" data-page="history" id="navHistory" aria-label="View history">
+                <img src="resources/ClockCounterClockwiseIcon.png" alt="" class="nav-icon" aria-hidden="true">
+                <span class="nav-label">History</span>
+            </button>
+            <button class="nav-item" data-page="profile" id="navProfile" aria-label="Open profile">
+                <img src="resources/userIcon.png" alt="" class="nav-icon" aria-hidden="true">
+                <span class="nav-label">Profile</span>
+            </button>
+        </nav>
+        <nav class="bottom-nav logged-out-nav" id="loggedOutNav" role="navigation" aria-label="Bottom navigation">
+            <button class="back-to-home-btn" id="backToHomeBtn" aria-label="Return to homepage">
+                <span>Back to homepage</span>
+            </button>
+        </nav>
     </div>
-    <div id="parkingModal" class="modal">
+    <div id="reserveModal" class="modal" role="dialog" aria-labelledby="reserveModalTitle" aria-modal="true">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="reserveModalTitle">Reserve Parking</h2>
+                <button class="modal-close" id="closeReserveModal" aria-label="Close reservation modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="reserveForm" aria-label="Reserve parking form">
+                    <div class="input-group">
+                        <label for="reserveParkingLocation" class="input-label">
+                            <img src="resources/locationIcon.png" alt="" class="input-label-icon" aria-hidden="true">
+                            Parking Location
+                        </label>
+                        <div class="input-wrapper">
+                            <input 
+                                type="text" 
+                                id="reserveParkingLocation" 
+                                class="form-input" 
+                                readonly
+                                placeholder="Select parking location"
+                                aria-readonly="true"
+                            >
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="reserveVehicleSelect" class="input-label">
+                            <img src="resources/parkingIcon.png" alt="" class="input-label-icon" aria-hidden="true">
+                            Select Vehicle
+                        </label>
+                        <div class="input-wrapper">
+                            <select id="reserveVehicleSelect" class="form-input form-select" required aria-required="true">
+                                <option value="">Choose a vehicle...</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="reserveDateInput" class="input-label">
+                            <img src="resources/documentTimeIcon.png" alt="" class="input-label-icon" aria-hidden="true">
+                            Date
+                        </label>
+                        <div class="input-wrapper">
+                            <input 
+                                type="date" 
+                                id="reserveDateInput" 
+                                class="form-input form-date" 
+                                required
+                                min=""
+                                aria-required="true"
+                            >
+                        </div>
+                    </div>
+
+                    <div class="info-notice" role="note">
+                        <img src="resources/warningIcon.png" alt="" class="info-icon-small" aria-hidden="true">
+                        <span>Reservations can only be made for tomorrow</span>
+                    </div>
+
+                    <div class="important-section">
+                        <h4 class="important-title">Important</h4>
+                        <ul class="important-list">
+                            <li>Reservation fee is <strong>non-refundable</strong></li>
+                            <li>Parking charges will be calculated separately after your visit</li>
+                            <li>Payment will be deducted from your wallet balance</li>
+                        </ul>
+                    </div>
+
+                    <div class="cost-breakdown">
+                        <div class="cost-row">
+                            <span class="cost-label">Reservation Fee</span>
+                            <span class="cost-value" id="reservationFee">$5.00</span>
+                        </div>
+                        <div class="cost-row">
+                            <span class="cost-label">Parking Charges</span>
+                            <span class="cost-value">Pay after visit</span>
+                        </div>
+                        <div class="cost-row total">
+                            <span class="cost-label">Pay now</span>
+                            <span class="cost-value" id="totalPayNow">$5.00</span>
+                        </div>
+                    </div>
+
+                    <div id="reserveErrorMessage" class="error-message" role="alert" aria-live="polite" style="display: none;"></div>
+
+                    <button type="submit" class="confirm-pay-btn" id="confirmPayBtn" aria-label="Confirm reservation and pay">
+                        Confirm & Pay $5.00
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="parkingModal" class="modal" role="dialog" aria-labelledby="modalParkingName" aria-modal="true">
         <div class="modal-content">
             <div class="modal-header">
                 <h2 id="modalParkingName" class="modal-title">Downtown Plaza</h2>
-                <button class="modal-close" id="modalCloseBtn">&times;</button>
+                <button class="modal-close" id="modalCloseBtn" aria-label="Close parking details modal">&times;</button>
             </div>
             
             <div class="modal-body">
