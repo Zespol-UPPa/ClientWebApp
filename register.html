@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Create your ParkFlow account - Find, reserve and pay for parking in seconds">
+    <title>ParkFlow - Sign Up</title>
+    <link rel="stylesheet" href="register.css">
+</head>
+<body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    <div class="phone-container">
+        <div class="register-container">
+            <div class="logo-section">
+                <div class="logo-wrapper" id="logoLink" role="button" tabindex="0" aria-label="Go to homepage">
+                    <img src="resources/ParkFlowIconPurple.svg" alt="ParkFlow logo" class="logo-icon">
+                </div>
+            </div>
+
+            <p class="welcome-text">Create account so you can start parking smarter!</p>
+
+            <form id="registerForm" class="register-form" aria-label="Registration form">
+                <div class="input-group">
+                    <label for="emailInput" class="sr-only">Email address</label>
+                    <img src="resources/mailIcon.png" alt="" class="input-icon" aria-hidden="true">
+                    <input 
+                        type="email" 
+                        id="emailInput" 
+                        class="form-input" 
+                        placeholder="e-mail" 
+                        required
+                        autocomplete="email"
+                        aria-required="true"
+                    >
+                </div>
+
+                <div class="input-group">
+                    <label for="passwordInput" class="sr-only">Password</label>
+                    <img src="resources/lockIcon.png" alt="" class="input-icon" aria-hidden="true">
+                    <input 
+                        type="password" 
+                        id="passwordInput" 
+                        class="form-input" 
+                        placeholder="password" 
+                        required
+                        autocomplete="new-password"
+                        aria-required="true"
+                    >
+                </div>
+
+                <div class="input-group">
+                    <label for="confirmPasswordInput" class="sr-only">Confirm password</label>
+                    <img src="resources/userIcon.png" alt="" class="input-icon" aria-hidden="true">
+                    <input 
+                        type="password" 
+                        id="confirmPasswordInput" 
+                        class="form-input" 
+                        placeholder="confirm password" 
+                        required
+                        autocomplete="new-password"
+                        aria-required="true"
+                    >
+                </div>
+
+                <div class="input-group">
+                    <label for="firstNameInput" class="sr-only">First name</label>
+                    <img src="resources/userIcon.png" alt="" class="input-icon" aria-hidden="true">
+                    <input 
+                        type="text" 
+                        id="firstNameInput" 
+                        class="form-input" 
+                        placeholder="First name" 
+                        required
+                        autocomplete="given-name"
+                        aria-required="true"
+                    >
+                </div>
+
+                <div class="input-group">
+                    <label for="lastNameInput" class="sr-only">Last name</label>
+                    <img src="resources/userIcon.png" alt="" class="input-icon" aria-hidden="true">
+                    <input 
+                        type="text" 
+                        id="lastNameInput" 
+                        class="form-input" 
+                        placeholder="Last name" 
+                        required
+                        autocomplete="family-name"
+                        aria-required="true"
+                    >
+                </div>
+
+                <div id="errorMessage" class="error-message" role="alert" aria-live="polite" style="display: none;"></div>
+
+                <div class="checkboxes">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="consentCheckbox" class="checkbox-input" required aria-required="true">
+                        <span class="checkbox-custom" aria-hidden="true"></span>
+                        <span class="checkbox-text">I consent to the processing of my personal data</span>
+                    </label>
+
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="termsCheckbox" class="checkbox-input" required aria-required="true">
+                        <span class="checkbox-custom" aria-hidden="true"></span>
+                        <span class="checkbox-text">
+                            I have read and accept the 
+                            <a href="#" class="terms-link" id="termsLink">Terms of Service</a>
+                            <img src="resources/warningIcon.png" alt="" class="info-icon-small" aria-hidden="true">
+                             and 
+                            <a href="#" class="terms-link" id="privacyLink">Privacy Policy</a>
+                        </span>
+                    </label>
+                </div>
+
+                <button type="submit" class="sign-up-btn" id="signUpBtn">
+                    Sign up
+                </button>
+            </form>
+
+            <div class="signin-link">
+                <span>Already have an account? </span>
+                <a href="login.html" class="signin-link-text">Sign in</a>
+            </div>
+        </div>
+    </div>
+    <main id="main-content"></main>
+
+    <script src="register.js"></script>
+</body>
+</html>
+

@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Manage your ParkFlow account settings, personal information, and vehicles">
+    <title>ParkFlow - Profile</title>
+    <link rel="stylesheet" href="profile.css">
+</head>
+<body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    <div class="phone-container">
+        <header class="header" role="banner">
+            <div class="logo" id="logoLink" role="button" tabindex="0" aria-label="Go to homepage">
+                <img src="resources/ParkFlowIconPurple.svg" alt="ParkFlow logo" class="logo-icon">
+            </div>
+        </header>
+
+        <main id="main-content" class="profile-content">
+
+            <section class="info-section">
+                <div class="section-header">
+                    <h3 class="section-title">Personal Information</h3>
+                    <button class="edit-btn" id="editPersonalInfoBtn">Edit</button>
+                </div>
+                <div class="info-fields" id="personalInfoFields">
+                    <div class="info-field">
+                        <label class="field-label">First Name</label>
+                        <input type="text" id="firstNameInput" class="field-input" value="John" readonly>
+                    </div>
+                    <div class="info-field">
+                        <label class="field-label">Last Name</label>
+                        <input type="text" id="lastNameInput" class="field-input" value="Doe" readonly>
+                    </div>
+                    <div class="info-field">
+                        <label class="field-label">Email</label>
+                        <input type="email" id="emailInput" class="field-input" value="john.doe@email.com" readonly>
+                    </div>
+                </div>
+                <div class="save-cancel-buttons" id="personalInfoSaveCancel" style="display: none;">
+                    <button class="cancel-btn" id="cancelPersonalInfoBtn">Cancel</button>
+                    <button class="save-btn" id="savePersonalInfoBtn">Save</button>
+                </div>
+            </section>
+
+            <section class="info-section">
+                <div class="section-header">
+                    <h3 class="section-title">Change Password</h3>
+                    <button class="edit-btn" id="changePasswordBtn">Change</button>
+                </div>
+                <div class="password-summary" id="passwordSummary">
+                    <div class="info-field">
+                        <label class="field-label">Password</label>
+                        <input type="password" class="field-input" value="**********" readonly>
+                    </div>
+                </div>
+                <div class="password-form" id="passwordForm" style="display: none;">
+                    <div class="info-field">
+                        <label class="field-label">Current Password</label>
+                        <input type="password" id="currentPasswordInput" class="field-input" placeholder="Enter current password">
+                    </div>
+                    <div class="info-field">
+                        <label class="field-label">New Password</label>
+                        <input type="password" id="newPasswordInput" class="field-input" placeholder="Enter new password">
+                    </div>
+                    <div class="info-field">
+                        <label class="field-label">Confirm New Password</label>
+                        <input type="password" id="confirmPasswordInput" class="field-input" placeholder="Confirm new password">
+                    </div>
+                    <div id="passwordErrorMessage" class="error-message" style="display: none;"></div>
+                    <div class="save-cancel-buttons">
+                        <button class="cancel-btn" id="cancelPasswordBtn">Cancel</button>
+                        <button class="save-btn" id="updatePasswordBtn">Update password</button>
+                    </div>
+                </div>
+            </section>
+
+            <section class="info-section">
+                <div class="section-header">
+                    <h3 class="section-title">My Vehicles</h3>
+                </div>
+                <div class="vehicles-list" id="vehiclesList">
+
+                </div>
+                <button class="add-vehicle-btn" id="addVehicleBtn">
+                    <span class="add-icon">+</span>
+                    <span>Add Vehicle</span>
+                </button>
+            </section>
+
+            <section class="info-section">
+                <div class="section-header">
+                    <h3 class="section-title">Account Actions</h3>
+                </div>
+                <div class="account-actions">
+                    <a href="#" class="action-link" id="privacyPolicyLink">
+                        <div class="action-content">
+                            <div>
+                                <span class="action-title">Privacy Policy</span>
+                                <p class="action-subtitle">View our privacy policy</p>
+                            </div>
+                            <img src="resources/Icon.png" alt="Arrow" class="action-arrow">
+                        </div>
+                    </a>
+                    <a href="#" class="action-link" id="termsLink">
+                        <div class="action-content">
+                            <div>
+                                <span class="action-title">Terms of service</span>
+                                <p class="action-subtitle">View terms and conditions</p>
+                            </div>
+                            <img src="resources/Icon.png" alt="Arrow" class="action-arrow">
+                        </div>
+                    </a>
+                    <a href="#" class="action-link" id="helpSupportLink">
+                        <div class="action-content">
+                            <div>
+                                <span class="action-title">Help & Support</span>
+                                <p class="action-subtitle">Get help or contact us</p>
+                            </div>
+                            <img src="resources/Icon.png" alt="Arrow" class="action-arrow">
+                        </div>
+                    </a>
+                    <a href="#" class="action-link delete-link" id="deleteAccountLink">
+                        <div class="action-content">
+                            <div>
+                                <span class="action-title">Delete Account</span>
+                                <p class="action-subtitle">Permanently delete your account and data</p>
+                            </div>
+                            <img src="resources/Icon.png" alt="Arrow" class="action-arrow">
+                        </div>
+                    </a>
+                </div>
+            </section>
+
+            <button class="logout-btn" id="logoutBtn">
+                <img src="resources/logOutIcon.png" alt="Log out" class="logout-icon">
+                <span>Log out</span>
+            </button>
+        </main>
+
+        <nav class="bottom-nav logged-in-nav">
+            <button class="nav-item" data-page="dashboard" id="navHome">
+                <img src="resources/HouseIcon.png" alt="Home" class="nav-icon">
+                <span class="nav-label">Home</span>
+            </button>
+            <button class="nav-item" data-page="parking" id="navParking">
+                <img src="resources/LetterCircleP.png" alt="Parking" class="nav-icon">
+                <span class="nav-label">Parking</span>
+            </button>
+            <button class="nav-item" data-page="wallet" id="navWallet">
+                <img src="resources/Wallet.png" alt="Wallet" class="nav-icon">
+                <span class="nav-label">Wallet</span>
+            </button>
+            <button class="nav-item" data-page="history" id="navHistory">
+                <img src="resources/ClockCounterClockwiseIcon.png" alt="History" class="nav-icon">
+                <span class="nav-label">History</span>
+            </button>
+            <button class="nav-item active" data-page="profile" id="navProfile">
+                <img src="resources/userIcon.png" alt="Profile" class="nav-icon">
+                <span class="nav-label">Profile</span>
+            </button>
+        </nav>
+    </div>
+
+    <div id="addVehicleModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Add Vehicle</h2>
+                <button class="modal-close" id="closeVehicleModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="addVehicleForm">
+                    <div class="input-group">
+                        <label class="input-label">License Plate</label>
+                        <input 
+                            type="text" 
+                            id="vehiclePlateInput" 
+                            class="form-input" 
+                            placeholder="e.g., KK971PL" 
+                            required
+                            maxlength="10"
+                        >
+                    </div>
+                    <div id="vehicleErrorMessage" class="error-message" style="display: none;"></div>
+                    <button type="submit" class="submit-btn" id="submitVehicleBtn">Add Vehicle</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="profile.js"></script>
+</body>
+</html>
+

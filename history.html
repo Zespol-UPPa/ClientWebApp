@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="View your parking history and statistics with ParkFlow">
+    <title>ParkFlow - History</title>
+    <link rel="stylesheet" href="history.css">
+</head>
+<body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    <div class="phone-container">
+        <header class="header" role="banner">
+            <div class="logo" id="logoLink" role="button" tabindex="0" aria-label="Go to homepage">
+                <img src="resources/ParkFlowIconPurple.svg" alt="ParkFlow logo" class="logo-icon">
+            </div>
+            <button class="user-icon-btn logged-in-nav-header" id="loggedInNavHeader" style="display: none;" aria-label="Open user profile">
+                <img src="resources/userIcon.png" alt="" class="user-icon" aria-hidden="true">
+            </button>
+            <nav class="header-nav logged-out-nav-header" id="loggedOutNavHeader" role="navigation" aria-label="Main navigation">
+                <a href="login.html" class="sign-in-link">Sign In</a>
+                <button class="get-started-btn" aria-label="Get started with ParkFlow">Get Started</button>
+            </nav>
+        </header>
+
+        <main id="main-content" class="history-content">
+            <section class="statistics-section">
+                <div class="stat-card">
+                    <h3 class="stat-value" id="totalSessions">0</h3>
+                    <p class="stat-label">Total Sessions</p>
+                </div>
+                <div class="stat-card">
+                    <h3 class="stat-value" id="totalTime">0h</h3>
+                    <p class="stat-label">Total Time</p>
+                </div>
+                <div class="stat-card">
+                    <h3 class="stat-value" id="totalSpent">$0</h3>
+                    <p class="stat-label">Total Spent</p>
+                </div>
+            </section>
+
+            <section class="filters-section">
+                <div class="date-filters">
+                    <div class="date-input-group">
+                        <img src="resources/bookingIcon.png" alt="Calendar" class="date-icon">
+                        <input type="date" id="startDate" class="date-input">
+                    </div>
+                    <div class="date-input-group">
+                        <img src="resources/bookingIcon.png" alt="Calendar" class="date-icon">
+                        <input type="date" id="endDate" class="date-input">
+                    </div>
+                </div>
+                <div class="filter-buttons">
+                    <button class="filter-pill active" data-filter="all">All</button>
+                    <button class="filter-pill" data-filter="thisMonth">This Month</button>
+                    <button class="filter-pill" data-filter="lastMonth">Last Month</button>
+                    <button class="filter-pill" data-filter="thisYear">This Year</button>
+                </div>
+            </section>
+
+            <section class="history-list-section">
+                <div id="historyContainer" class="history-container">
+                </div>
+            </section>
+        </main>
+
+        <nav class="bottom-nav logged-in-nav" id="loggedInNav" style="display: none;">
+            <button class="nav-item" data-page="dashboard" id="navHome">
+                <img src="resources/HouseIcon.png" alt="Home" class="nav-icon">
+                <span class="nav-label">Home</span>
+            </button>
+            <button class="nav-item" data-page="parking" id="navParking">
+                <img src="resources/LetterCircleP.png" alt="Parking" class="nav-icon">
+                <span class="nav-label">Parking</span>
+            </button>
+            <button class="nav-item" data-page="wallet" id="navWallet">
+                <img src="resources/Wallet.png" alt="Wallet" class="nav-icon">
+                <span class="nav-label">Wallet</span>
+            </button>
+            <button class="nav-item active" data-page="history" id="navHistory">
+                <img src="resources/ClockCounterClockwiseIcon.png" alt="History" class="nav-icon">
+                <span class="nav-label">History</span>
+            </button>
+            <button class="nav-item" data-page="profile" id="navProfile">
+                <img src="resources/userIcon.png" alt="Profile" class="nav-icon">
+                <span class="nav-label">Profile</span>
+            </button>
+        </nav>
+
+        <nav class="bottom-nav logged-out-nav" id="loggedOutNav">
+            <button class="back-to-home-btn" id="backToHomeBtn">
+                <span>Back to homepage</span>
+            </button>
+        </nav>
+    </div>
+
+    <script src="history.js"></script>
+</body>
+</html>
+

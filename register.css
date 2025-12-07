@@ -1,0 +1,345 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.skip-link {
+    position: absolute;
+    top: -40px;
+    left: 0;
+    background: #6b46c1;
+    color: white;
+    padding: 8px;
+    text-decoration: none;
+    z-index: 1000;
+    border-radius: 4px;
+}
+
+.skip-link:focus {
+    top: 0;
+}
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background: #f5f5f5;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+    position: relative;
+}
+
+.phone-container {
+    width: 100%;
+    max-width: 393px;
+    background: white;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.1);
+    border-radius: 40px;
+    overflow: hidden;
+    position: relative;
+    min-height: 600px;
+}
+
+@media (min-width: 768px) {
+    .phone-container {
+        max-width: 393px;
+        box-shadow: 0 0 30px rgba(0, 0, 0, 0.1);
+        border-radius: 40px;
+    }
+}
+
+.register-container {
+    padding: 40px 32px 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100%;
+}
+
+.logo-section {
+    margin-bottom: 24px;
+}
+
+.logo-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: opacity 0.2s;
+}
+
+.logo-wrapper:hover {
+    opacity: 0.8;
+}
+
+.logo-icon {
+    width: auto;
+    height: 48px;
+    max-width: 144px;
+    object-fit: contain;
+}
+
+.logo-text {
+    font-size: 32px;
+    font-weight: 800;
+    color: #1a1a1a;
+    letter-spacing: -1px;
+}
+
+.logo-o {
+    color: #6b46c1;
+    font-weight: 800;
+}
+
+.welcome-text {
+    font-size: 16px;
+    color: #6b7280;
+    text-align: center;
+    margin-bottom: 32px;
+    line-height: 1.5;
+}
+
+.register-form {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.input-group {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 14px 16px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.input-group:focus-within {
+    border-color: #6b46c1;
+    box-shadow: 0 0 0 3px rgba(107, 70, 193, 0.1);
+}
+
+.input-icon {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+    opacity: 0.6;
+    margin-right: 12px;
+    flex-shrink: 0;
+}
+
+.form-input {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-size: 16px;
+    color: #1a1a1a;
+    background: transparent;
+}
+
+.form-input:focus {
+    outline: 2px solid #6b46c1;
+    outline-offset: 2px;
+}
+
+.form-input::placeholder {
+    color: #9ca3af;
+}
+
+.error-message {
+    background: #fee2e2;
+    color: #dc2626;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    text-align: center;
+    border: 1px solid #fecaca;
+    margin-top: 8px;
+}
+
+.checkboxes {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 8px;
+    margin-bottom: 8px;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #6b7280;
+    line-height: 1.5;
+}
+
+.checkbox-input {
+    display: none;
+}
+
+.checkbox-custom {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #d1d5db;
+    border-radius: 4px;
+    background: white;
+    flex-shrink: 0;
+    margin-top: 2px;
+    position: relative;
+    transition: all 0.2s;
+}
+
+.checkbox-input:checked + .checkbox-custom {
+    background: #6b46c1;
+    border-color: #6b46c1;
+}
+
+.checkbox-input:checked + .checkbox-custom::after {
+    content: '';
+    position: absolute;
+    left: 6px;
+    top: 2px;
+    width: 6px;
+    height: 10px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+.checkbox-text {
+    flex: 1;
+}
+
+.terms-link {
+    color: #6b46c1;
+    text-decoration: underline;
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+.terms-link:hover {
+    color: #5b21b6;
+}
+
+.info-icon-small {
+    width: 14px;
+    height: 14px;
+    object-fit: contain;
+    opacity: 0.6;
+    display: inline-block;
+    vertical-align: middle;
+    margin-left: 4px;
+}
+
+.sign-up-btn {
+    width: 100%;
+    background: #6b46c1;
+    color: white;
+    border: none;
+    padding: 16px;
+    border-radius: 12px;
+    font-size: 18px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    margin-top: 8px;
+}
+
+.sign-up-btn:hover {
+    background: #5b21b6;
+    transform: translateY(-1px);
+}
+
+.sign-up-btn:active {
+    transform: translateY(0);
+}
+
+.sign-up-btn:focus {
+    outline: 3px solid #6b46c1;
+    outline-offset: 2px;
+}
+
+.sign-up-btn:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.checkbox-input:focus + .checkbox-custom {
+    outline: 2px solid #6b46c1;
+    outline-offset: 2px;
+}
+
+.logo-wrapper:focus {
+    outline: 2px solid #6b46c1;
+    outline-offset: 4px;
+    border-radius: 4px;
+}
+
+a:focus {
+    outline: 2px solid #6b46c1;
+    outline-offset: 2px;
+    border-radius: 2px;
+}
+
+.signin-link {
+    text-align: center;
+    font-size: 14px;
+    color: #6b7280;
+    margin-top: auto;
+}
+
+.signin-link-text {
+    color: #6b46c1;
+    text-decoration: underline;
+    font-weight: 600;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.signin-link-text:hover {
+    color: #5b21b6;
+}
+
+@media (max-width: 375px) {
+    .phone-container {
+        border-radius: 0;
+        min-height: 100vh;
+    }
+    
+    .register-container {
+        padding: 32px 24px 32px;
+    }
+    
+    .logo-text {
+        font-size: 28px;
+    }
+    
+    .welcome-text {
+        font-size: 14px;
+    }
+    
+    .register-form {
+        gap: 14px;
+    }
+}
+

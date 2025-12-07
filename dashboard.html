@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="ParkFlow Dashboard - Manage your parking balance, reservations, and vehicles">
+    <title>ParkFlow - Dashboard</title>
+    <link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    <div class="phone-container">
+        <header class="header" role="banner">
+            <div class="logo" id="logoLink" role="button" tabindex="0" aria-label="Go to homepage">
+                <img src="resources/ParkFlowIconPurple.svg" alt="ParkFlow logo" class="logo-icon">
+            </div>
+            <button class="user-icon-btn" id="userIconBtn" aria-label="Open user profile">
+                <img src="resources/userIcon.png" alt="" class="user-icon" aria-hidden="true">
+            </button>
+        </header>
+
+        <main id="main-content" class="dashboard-content">
+            <section class="balance-section" aria-labelledby="balance-title">
+                <div class="balance-card">
+                    <h3 class="balance-title" id="balance-title">Your Balance</h3>
+                    <p class="balance-amount" id="balanceAmount" aria-live="polite">$0.00</p>
+                    <div class="balance-buttons">
+                        <button class="balance-btn" id="topUpBtn" aria-label="Top up wallet balance">Top Up</button>
+                        <button class="balance-btn" id="historyBtn" aria-label="View parking history">History</button>
+                    </div>
+                </div>
+            </section>
+            <section id="unpaidSection" class="unpaid-section" style="display: none;" aria-labelledby="unpaid-title" role="alert">
+                <div class="unpaid-card">
+                    <div class="unpaid-header">
+                        <img src="resources/warningIcon.png" alt="" class="warning-icon" aria-hidden="true">
+                        <div class="unpaid-info">
+                            <h4 class="unpaid-title" id="unpaid-title">Unpaid Parking session</h4>
+                            <p class="unpaid-details" id="unpaidDetails"></p>
+                            <p class="unpaid-amount" id="unpaidAmount">Amount Due: $0.00</p>
+                        </div>
+                    </div>
+                    <button class="pay-now-btn" id="payNowBtn" aria-label="Pay for unpaid parking session">Pay Now</button>
+                </div>
+
+                <div class="reminder-note">
+                    <img src="resources/lightbIcon.png" alt="" class="reminder-icon" aria-hidden="true">
+                    <p class="reminder-text">Remember: Please settle unpaid parking sessions to maintain access. You won't be able to enter parking facilities with outstanding payments.</p>
+                </div>
+            </section>
+            <section class="reservation-section">
+                <h3 class="section-title">Active Reservation</h3>
+                <div class="reservations-container" id="reservationsContainer">
+                    <div class="reservations-scroll" id="reservationsScroll">
+                    </div>
+                    <div id="noReservations" class="no-reservations" style="display: none;">
+                        No active reservations
+                    </div>
+                </div>
+            </section>
+            <section id="activeSessionSection" class="active-session-section" style="display: none;">
+                <h3 class="section-title">Active Parking Session</h3>
+                <div class="session-card" id="activeSessionCard">
+                </div>
+            </section>
+
+            <section class="vehicles-section">
+                <h3 class="section-title">My Vehicles</h3>
+                <div class="vehicles-list" id="vehiclesList">
+                </div>
+                <button class="add-vehicle-btn" id="addVehicleBtn">
+                    <span class="add-icon">+</span>
+                    <span>Add Vehicle</span>
+                </button>
+            </section>
+
+            <section class="quick-actions-section">
+                <h3 class="section-title">Quick Actions</h3>
+                <div class="quick-actions-grid">
+                    <div class="quick-action-card" id="findParkingCard">
+                        <div class="action-icon-wrapper find-parking">
+                            <img src="resources/parking-lot 2.png" alt="Find Parking" class="action-icon">
+                        </div>
+                        <h4 class="action-title">Find Parking</h4>
+                        <p class="action-subtitle">Available now</p>
+                    </div>
+
+                    <div class="quick-action-card" id="myReservationsCard">
+                        <div class="action-icon-wrapper reservations">
+                            <img src="resources/bookingIcon.png" alt="Reservations" class="action-icon">
+                        </div>
+                        <h4 class="action-title">My Reservations</h4>
+                        <p class="action-subtitle">View all</p>
+                    </div>
+
+                    <div class="quick-action-card" id="walletCard">
+                        <div class="action-icon-wrapper wallet">
+                            <img src="resources/Wallet.png" alt="Wallet" class="action-icon">
+                        </div>
+                        <h4 class="action-title">Wallet</h4>
+                        <p class="action-subtitle" id="walletBalance">$0.00</p>
+                    </div>
+
+                    <div class="quick-action-card" id="historyCard">
+                        <div class="action-icon-wrapper history">
+                            <img src="resources/ClockCounterClockwiseIcon.png" alt="History" class="action-icon">
+                        </div>
+                        <h4 class="action-title">History</h4>
+                        <p class="action-subtitle">View activity</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+        <nav class="bottom-nav logged-in-nav">
+            <button class="nav-item active" data-page="dashboard" id="navHome">
+                <img src="resources/HouseIcon.png" alt="Home" class="nav-icon">
+                <span class="nav-label">Home</span>
+            </button>
+            <button class="nav-item" data-page="parking" id="navParking">
+                <img src="resources/LetterCircleP.png" alt="Parking" class="nav-icon">
+                <span class="nav-label">Parking</span>
+            </button>
+            <button class="nav-item" data-page="wallet" id="navWallet">
+                <img src="resources/Wallet.png" alt="Wallet" class="nav-icon">
+                <span class="nav-label">Wallet</span>
+            </button>
+            <button class="nav-item" data-page="history" id="navHistory">
+                <img src="resources/ClockCounterClockwiseIcon.png" alt="History" class="nav-icon">
+                <span class="nav-label">History</span>
+            </button>
+            <button class="nav-item" data-page="profile" id="navProfile">
+                <img src="resources/userIcon.png" alt="Profile" class="nav-icon">
+                <span class="nav-label">Profile</span>
+            </button>
+        </nav>
+    </div>
+    <div id="addVehicleModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Add Vehicle</h2>
+                <button class="modal-close" id="closeVehicleModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="addVehicleForm">
+                    <div class="input-group">
+                        <label class="input-label">License Plate</label>
+                        <input 
+                            type="text" 
+                            id="vehiclePlateInput" 
+                            class="form-input" 
+                            placeholder="e.g., KK971PL" 
+                            required
+                            maxlength="10"
+                        >
+                    </div>
+                    <div id="vehicleErrorMessage" class="error-message" role="alert" aria-live="polite" style="display: none;"></div>
+                    <button type="submit" class="submit-btn" id="submitVehicleBtn">Add Vehicle</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="dashboard.js"></script>
+</body>
+</html>
+
