@@ -2,8 +2,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const logoLink = document.getElementById('logoLink');
     if (logoLink) {
         const handleLogoNavigation = function() {
-            const authToken = localStorage.getItem('authToken');
-            if (authToken) {
+            if (api.isTokenValid()) {
                 window.location.href = 'dashboard.html';
             } else {
                 window.location.href = 'home.html';

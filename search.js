@@ -1,81 +1,7 @@
 
-const API_BASE_URL = null;
-const USE_API = false;
+// API module is loaded from api.js
 
-const SAMPLE_PARKING_DATA = [
-    {
-        id: 1,
-        name: "Downtown Plaza",
-        address: "123 Main Street",
-        availableSpots: 42,
-        totalSpots: 100,
-        pricePerHour: 4.25,
-        isAvailable: true
-    },
-    {
-        id: 2,
-        name: "Central Mall Parking",
-        address: "456 Shopping Avenue",
-        availableSpots: 30,
-        totalSpots: 80,
-        pricePerHour: 3.50,
-        isAvailable: true
-    },
-    {
-        id: 3,
-        name: "University Campus",
-        address: "789 Education Boulevard",
-        availableSpots: 0,
-        totalSpots: 50,
-        pricePerHour: 2.75,
-        isAvailable: false
-    },
-    {
-        id: 4,
-        name: "City Center Garage",
-        address: "321 Business District",
-        availableSpots: 15,
-        totalSpots: 120,
-        pricePerHour: 5.00,
-        isAvailable: true
-    },
-    {
-        id: 5,
-        name: "Riverside Parking",
-        address: "654 Waterfront Road",
-        availableSpots: 8,
-        totalSpots: 30,
-        pricePerHour: 3.00,
-        isAvailable: true
-    },
-    {
-        id: 6,
-        name: "Station Square",
-        address: "987 Transit Way",
-        availableSpots: 0,
-        totalSpots: 60,
-        pricePerHour: 4.50,
-        isAvailable: false
-    },
-    {
-        id: 7,
-        name: "Park Avenue Lot",
-        address: "147 Green Street",
-        availableSpots: 25,
-        totalSpots: 40,
-        pricePerHour: 3.75,
-        isAvailable: true
-    },
-    {
-        id: 8,
-        name: "Market Street Garage",
-        address: "258 Commerce Lane",
-        availableSpots: 12,
-        totalSpots: 90,
-        pricePerHour: 4.00,
-        isAvailable: true
-    }
-];
+// Sample data removed - using real API data
 
 let parkingData = [];
 let currentFilter = 'all';
@@ -83,51 +9,77 @@ let searchQuery = '';
 let isLoading = false;
 
 /**
+ * Formatuje cenę zgodnie z walutą
+ * @param {number} amount - Kwota w głównej jednostce waluty
+ * @param {string} currency - Kod waluty (PLN, USD, EUR, etc.)
+ * @returns {string} Sformatowana cena z symbolem waluty
+ */
+function formatPrice(amount, currency) {
+    const formatted = amount.toFixed(2);
+    switch (currency) {
+        case 'PLN':
+            return `${formatted} zł`;
+        case 'USD':
+            return `$${formatted}`;
+        case 'EUR':
+            return `€${formatted}`;
+        default:
+            return `${formatted} ${currency}`;
+    }
+}
+
+/**
  * Ładuje parkingi z API lub zwraca dane statyczne
  * @param {string} location - Lokalizacja do wyszukania (opcjonalne)
  * @returns {Promise<Array>} Tablica parkingów
  */
 async function loadParkings(location = null) {
-    if (USE_API && API_BASE_URL) {
-        try {
-            isLoading = true;
-            showLoadingState();
-            
-            // TODO:  endpoint do API
-            let url = `${API_BASE_URL}/parkings`;
-            if (location) {
-                url += `?location=${encodeURIComponent(location)}`;
-            }
-            
-            const response = await fetch(url, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    // TODO: Dodaj autoryzację 
-                    // 'Authorization': `Bearer ${getAuthToken()}`
-                }
-            });
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            const data = await response.json();
-            isLoading = false;
-            
-            return data;
-            
-        } catch (error) {
-            console.error('Error loading parkings from API:', error);
-            isLoading = false;
-            showErrorState('Failed to load parkings. Using sample data.');
-            
-
-            return SAMPLE_PARKING_DATA;
+    try {
+        isLoading = true;
+        showLoadingState();
+        
+        // Load parking locations from parking-service (public endpoint, no auth required)
+        let url = '/parking/locations';
+        if (location) {
+            url += `?location=${encodeURIComponent(location)}`;
         }
-    } else {
-
-        return SAMPLE_PARKING_DATA;
+        
+        const data = await api.get(url, false); // No auth required
+        isLoading = false;
+        
+        // Transform backend data to frontend format
+        if (Array.isArray(data)) {
+            return data.map(p => {
+                // Backend returns: id_parking, name_parking, address_line, total_spots, available_spots, 
+                // price_per_hour_minor, currency_code, reservation_fee_minor, rate_per_min, free_minutes, rounding_step_min
+                const pricePerHourMinor = p.price_per_hour_minor || 0;
+                const currency = p.currency_code || 'PLN';
+                const pricePerHour = pricePerHourMinor / 100; // Convert from minor units (grosze/cents) to main unit
+                
+                return {
+                    id: p.id_parking || p.id || p.location_id,
+                    name: p.name_parking || p.name || p.location_name || 'Unknown',
+                    address: p.address_line || p.address || p.location_address || '',
+                    availableSpots: p.available_spots || 0,
+                    totalSpots: p.total_spots || 0,
+                    occupiedSpots: p.occupied_spots || 0,
+                    pricePerHour: pricePerHour,
+                    currency: currency,
+                    reservationFeeMinor: p.reservation_fee_minor || 0,
+                    ratePerMin: p.rate_per_min || 0,
+                    freeMinutes: p.free_minutes || 0,
+                    roundingStepMin: p.rounding_step_min || 0,
+                    isAvailable: (p.available_spots || 0) > 0
+                };
+            });
+        }
+        
+        return [];
+    } catch (error) {
+        console.error('Error loading parkings from API:', error);
+        isLoading = false;
+        showErrorState('Failed to load parkings. Please try again later.');
+        return [];
     }
 }
 
@@ -170,8 +122,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     const logoLink = document.getElementById('logoLink');
     if (logoLink) {
         const handleLogoNavigation = function() {
-            const authToken = localStorage.getItem('authToken');
-            if (authToken) {
+            if (api.isTokenValid()) {
                 window.location.href = 'dashboard.html';
             } else {
                 window.location.href = 'home.html';
@@ -191,6 +142,26 @@ document.addEventListener('DOMContentLoaded', async function() {
     const filterButtons = document.querySelectorAll('.filter-btn');
     const parkingContainer = document.getElementById('parkingContainer');
     setupBottomNavigation();
+    
+    // Load initial parking data
+    parkingData = await loadParkings();
+    renderParkings(parkingData);
+    
+    // Check for parkingId in URL params and open modal if present
+    const urlParams = new URLSearchParams(window.location.search);
+    const parkingIdParam = urlParams.get('parkingId');
+    if (parkingIdParam) {
+        const parkingId = parseInt(parkingIdParam);
+        if (!isNaN(parkingId)) {
+            const parking = parkingData.find(p => p.id === parkingId);
+            if (parking) {
+                // Small delay to ensure modal handlers are set up
+                setTimeout(() => {
+                    handleDetailsClick(parkingId);
+                }, 100);
+            }
+        }
+    }
 
     parkingData = await loadParkings();
     renderParkings(parkingData);
@@ -258,7 +229,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                     </div>
                     <div class="info-row">
                         <img src="resources/moneyIcon.png" alt="Price" class="info-icon">
-                        <span class="price">$${parking.pricePerHour.toFixed(2)}/hour</span>
+                        <span class="price">${formatPrice(parking.pricePerHour, parking.currency)}/hour</span>
                     </div>
                 </div>
                 <div class="card-buttons">
@@ -354,11 +325,40 @@ async function openParkingModal(parking) {
     const modalAvailableSpots = document.getElementById('modalAvailableSpots');
     const modalRate = document.getElementById('modalRate');
 
+    // Try to load fresh details from API, fallback to cached data
+    try {
+        const details = await api.get(`/parking/locations/${parking.id}/details`, false);
+        if (details) {
+            parking.totalSpots = details.total_spots || parking.totalSpots;
+            parking.availableSpots = details.available_spots || parking.availableSpots;
+            parking.occupiedSpots = details.occupied_spots || parking.occupiedSpots || 0;
+            const pricePerHourMinor = details.price_per_hour_minor || 0;
+            parking.pricePerHour = pricePerHourMinor / 100; // Convert from minor units to main unit
+            parking.currency = details.currency_code || parking.currency || 'PLN';
+            parking.reservationFeeMinor = details.reservation_fee_minor || parking.reservationFeeMinor || 0;
+            parking.ratePerMin = details.rate_per_min || parking.ratePerMin || 0;
+            parking.freeMinutes = details.free_minutes || parking.freeMinutes || 0;
+            parking.roundingStepMin = details.rounding_step_min || parking.roundingStepMin || 0;
+        }
+    } catch (error) {
+        console.warn('Failed to load parking details, using cached data:', error);
+    }
+
     modalName.textContent = parking.name;
     modalAddress.textContent = parking.address;
-    modalTotalSpots.textContent = parking.totalSpots || 150;
-    modalAvailableSpots.textContent = `${parking.availableSpots} spots`;
-    modalRate.textContent = `$${parking.pricePerHour.toFixed(2)}/hour`;
+    modalTotalSpots.textContent = parking.totalSpots || 0;
+    modalAvailableSpots.textContent = `${parking.availableSpots || 0} spots`;
+    modalRate.textContent = `${formatPrice(parking.pricePerHour || 0, parking.currency || 'PLN')}/hour`;
+    
+    // Wyświetl informacje o darmowych minutach i zaokrągleniu
+    const modalFreeMinutes = document.getElementById('modalFreeMinutes');
+    const modalRoundingStep = document.getElementById('modalRoundingStep');
+    if (modalFreeMinutes) {
+        modalFreeMinutes.textContent = `${parking.freeMinutes || 0} minutes`;
+    }
+    if (modalRoundingStep) {
+        modalRoundingStep.textContent = `${parking.roundingStepMin || 0} minutes`;
+    }
 
     modal.classList.add('active');
     document.body.style.overflow = 'hidden';
@@ -404,44 +404,28 @@ function closeParkingModal() {
 }
 
 /**
- * Ładuje dane wykresu z API lub używa przykładowych danych
+ * Ładuje dane wykresu z API
  */
 async function loadChartData(parkingId) {
-    if (USE_API && API_BASE_URL) {
-        try {
-            const response = await fetch(`${API_BASE_URL}/parkings/${parkingId}/occupancy`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                }
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const data = await response.json();
-            // TODO: Dostosuj mapowanie danych jeśli struktura API jest inna
-            return data;
-        } catch (error) {
-            console.error('Error loading chart data from API:', error);
-            // Fallback do przykładowych danych
-            return getSampleChartData();
-        }
-    } else {
-        return getSampleChartData();
+    try {
+        const data = await api.get(`/parking/locations/${parkingId}/occupancy`, false); // No auth required
+        // Backend returns: normal, peak, hours, total_spots, available_spots, day_of_week
+        return {
+            normal: data.normal || [25, 40, 55, 70, 75, 70, 60, 50, 35],
+            peak: data.peak || [45, 65, 80, 90, 95, 90, 80, 70, 50],
+            hours: data.hours || ['6 AM', '8 AM', '10 AM', '12 PM', '2 PM', '4 PM', '6 PM', '8 PM', '10 PM'],
+            dayOfWeek: data.day_of_week || 'Today'
+        };
+    } catch (error) {
+        console.error('Error loading chart data from API:', error);
+        // Fallback to sample data if API fails
+        return {
+            normal: [25, 40, 55, 70, 75, 70, 60, 50, 35],
+            peak: [45, 65, 80, 90, 95, 90, 80, 70, 50],
+            hours: ['6 AM', '8 AM', '10 AM', '12 PM', '2 PM', '4 PM', '6 PM', '8 PM', '10 PM'],
+            dayOfWeek: 'Today'
+        };
     }
-}
-
-/**
- * Zwraca przykładowe dane wykresu
- */
-function getSampleChartData() {
-    return {
-        normal: [25, 40, 55, 70, 75, 70, 60, 50, 35],
-        peak: [45, 65, 80, 90, 95, 90, 80, 70, 50],
-        hours: ['6 AM', '8 AM', '10 AM', '12 PM', '2 PM', '4 PM', '6 PM', '8 PM', '10 PM']
-    };
 }
 
 /**
@@ -458,6 +442,12 @@ async function loadAndDrawChart(parkingId) {
     container.style.opacity = '0.5';
 
     const chartData = await loadChartData(parkingId);
+    
+    // Zaktualizuj tytuł wykresu z informacją o dniu tygodnia
+    const chartTitle = document.getElementById('chartTitle') || document.querySelector('.chart-title');
+    if (chartTitle && chartData.dayOfWeek) {
+        chartTitle.textContent = `Typical occupancy by hour (${chartData.dayOfWeek})`;
+    }
     
     const dpr = window.devicePixelRatio || 1;
     const rect = container.getBoundingClientRect();
@@ -575,10 +565,7 @@ function drawChart(ctx, data, width, height) {
 
 
 function isUserLoggedIn() {
-
-    const authToken = localStorage.getItem('authToken');
-
-    return !!authToken;
+    return api.isTokenValid();
 }
 
 function setupBottomNavigation() {
@@ -676,6 +663,7 @@ async function openReserveModal(parking) {
     const parkingLocationInput = document.getElementById('reserveParkingLocation');
     const vehicleSelect = document.getElementById('reserveVehicleSelect');
     const dateInput = document.getElementById('reserveDateInput');
+    const timeInput = document.getElementById('reserveTimeInput');
     const closeBtn = document.getElementById('closeReserveModal');
     const reserveForm = document.getElementById('reserveForm');
 
@@ -686,6 +674,11 @@ async function openReserveModal(parking) {
     const minDate = tomorrow.toISOString().split('T')[0];
     dateInput.min = minDate;
     dateInput.value = minDate;
+    
+    // Set default time to 09:00
+    if (timeInput) {
+        timeInput.value = '09:00';
+    }
 
     await loadVehicles();
     populateVehicleSelect();
@@ -721,30 +714,25 @@ function closeReserveModal() {
 }
 
 async function loadVehicles() {
-    if (USE_API && API_BASE_URL) {
-        try {
-            const response = await fetch(`${API_BASE_URL}/vehicles`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                }
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const data = await response.json();
+    try {
+        const data = await api.get('/customer/vehicles');
+        // Backend returns List<Map>, transform to array of objects
+        if (Array.isArray(data)) {
+            vehicles = data.map(v => ({
+                id: v.id || v.vehicle_id,
+                plate: v.plate || v.licence_plate || v.licencePlate
+            }));
+        } else {
             vehicles = data.vehicles || [];
-        } catch (error) {
-            console.error('Error loading vehicles:', error);
-            vehicles = [];
         }
-    } else {
-        vehicles = [
-            { id: 1, plate: 'KK971PL' },
-            { id: 2, plate: 'WA12345' }
-        ];
+    } catch (error) {
+        // Check if it's an authorization error
+        if (error && (error.message.includes('401') || error.message.includes('Unauthorized'))) {
+            api.redirectToLogin();
+            return;
+        }
+        console.error('Error loading vehicles:', error);
+        vehicles = [];
     }
 }
 
@@ -763,11 +751,14 @@ function populateVehicleSelect() {
 async function handleReserveSubmit(parking) {
     const vehicleSelect = document.getElementById('reserveVehicleSelect');
     const dateInput = document.getElementById('reserveDateInput');
+    const timeInput = document.getElementById('reserveTimeInput');
     const errorMessage = document.getElementById('reserveErrorMessage');
     const confirmBtn = document.getElementById('confirmPayBtn');
 
     const vehicleId = parseInt(vehicleSelect.value);
     const date = dateInput.value;
+    const time = timeInput ? timeInput.value : null;
+    
     if (!vehicleId) {
         errorMessage.textContent = 'Please select a vehicle';
         errorMessage.style.display = 'block';
@@ -779,13 +770,19 @@ async function handleReserveSubmit(parking) {
         errorMessage.style.display = 'block';
         return;
     }
-    const selectedDate = new Date(date);
+    
+    if (!time) {
+        errorMessage.textContent = 'Please select a time';
+        errorMessage.style.display = 'block';
+        return;
+    }
+    
+    const selectedDateTime = new Date(date + 'T' + time);
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     tomorrow.setHours(0, 0, 0, 0);
-    selectedDate.setHours(0, 0, 0, 0);
 
-    if (selectedDate < tomorrow) {
+    if (selectedDateTime < tomorrow) {
         errorMessage.textContent = 'Reservations can only be made for tomorrow or later';
         errorMessage.style.display = 'block';
         return;
@@ -795,13 +792,29 @@ async function handleReserveSubmit(parking) {
     confirmBtn.disabled = true;
     confirmBtn.textContent = 'Processing...';
 
+    // Use reservation fee from parking data if available, otherwise fetch from API
+    let reservationFeeMinor = parking.reservationFeeMinor || 0;
+    const currency = parking.currency || 'PLN';
+    
+    if (reservationFeeMinor === 0) {
+        try {
+            // Fetch reservation fee from backend if not in parking data
+            const feeResponse = await api.get(`/parking/pricing/${parking.id}/reservation-fee`, false);
+            reservationFeeMinor = feeResponse.reservationFeeMinor || 0;
+        } catch (error) {
+            console.error('Error fetching reservation fee:', error);
+            // Use default fee if API fails
+            reservationFeeMinor = currency === 'PLN' ? 1000 : 500; // 10.00 PLN or 5.00 USD default
+        }
+    }
+    
     try {
-        const reservationFee = 5.00; 
         await createReservation({
             parkingId: parking.id,
             vehicleId: vehicleId,
             date: date,
-            reservationFee: reservationFee
+            time: time,
+            reservationFeeMinor: reservationFeeMinor
         });
         
         closeReserveModal();
@@ -810,40 +823,46 @@ async function handleReserveSubmit(parking) {
         errorMessage.textContent = error.message || 'Error creating reservation. Please try again.';
         errorMessage.style.display = 'block';
     } finally {
+        const feeAmount = reservationFeeMinor / 100;
+        const feeText = formatPrice(feeAmount, currency);
         confirmBtn.disabled = false;
-        confirmBtn.textContent = `Confirm & Pay $5.00`;
+        confirmBtn.textContent = `Confirm & Pay ${feeText}`;
     }
 }
 
 async function createReservation(reservationData) {
-    if (USE_API && API_BASE_URL) {
-        try {
-            const response = await fetch(`${API_BASE_URL}/reservations`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(reservationData)
-            });
-
-            if (!response.ok) {
-                if (response.status === 402) {
-                    throw new Error('Insufficient wallet balance');
-                }
-                if (response.status === 409) {
-                    throw new Error('You already have a reservation for this date');
-                }
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            return await response.json();
-        } catch (error) {
-            console.error('Error creating reservation:', error);
-            throw error;
+    try {
+        // Customer-service expects: parkingId, spotId, startDateTime, durationSeconds (optional, default 7200)
+        // reservationData has: parkingId, vehicleId, date, time, reservationFeeMinor
+        const params = new URLSearchParams();
+        params.append('parkingId', reservationData.parkingId);
+        
+        // For now, use spotId 1 (this should be selected by user or auto-assigned)
+        // TODO: Implement spot selection
+        params.append('spotId', reservationData.spotId || '1');
+        
+        // Format startDateTime as ISO-8601: "2026-01-07T14:00:00Z" (UTC)
+        // Instant.parse() requires timezone information, so we add 'Z' for UTC
+        if (reservationData.date && reservationData.time) {
+            const startDateTime = reservationData.date + 'T' + reservationData.time + ':00Z';
+            params.append('startDateTime', startDateTime);
         }
-    } else {
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        return { success: true, reservationId: Date.now() };
+        
+        // Calculate duration in seconds (default 2 hours = 7200 seconds)
+        const durationSeconds = reservationData.durationSeconds || 7200;
+        params.append('durationSeconds', durationSeconds.toString());
+        
+        const data = await api.post(`/customer/reservations?${params.toString()}`, null);
+        return { success: true, reservationId: data.id };
+    } catch (error) {
+        console.error('Error creating reservation:', error);
+        if (error.message.includes('402') || error.message.includes('Insufficient')) {
+            throw new Error('Insufficient wallet balance');
+        }
+        if (error.message.includes('409') || error.message.includes('already')) {
+            throw new Error('You already have a reservation for this date');
+        }
+        throw error;
     }
 }
 

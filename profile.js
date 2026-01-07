@@ -1,5 +1,4 @@
-const API_BASE_URL = null;
-const USE_API = false;
+// API module is loaded from api.js
 
 let userData = {
     firstName: '',
@@ -12,11 +11,16 @@ let isEditingPersonalInfo = false;
 let isChangingPassword = false;
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Check authorization before executing any requests
+    if (!api.isTokenValid()) {
+        api.redirectToLogin();
+        return; // Don't load the page
+    }
+    
     const logoLink = document.getElementById('logoLink');
     if (logoLink) {
         const handleLogoNavigation = function() {
-            const authToken = localStorage.getItem('authToken');
-            if (authToken) {
+            if (api.isTokenValid()) {
                 window.location.href = 'dashboard.html';
             } else {
                 window.location.href = 'home.html';
@@ -33,13 +37,26 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     setupNavigation();
-    setupPersonalInfo();
     setupPasswordChange();
-    setupVehicles();
     setupAccountActions();
     setupLogout();
-    loadUserData();
-    loadVehicles();
+    
+    // Load user data first, then setup personal info section
+    // This ensures input fields are populated with actual data, not placeholder values
+    Promise.all([
+        loadUserData(),
+        loadVehicles()
+    ]).then(() => {
+        // After data is loaded, setup personal info and vehicles
+        setupPersonalInfo();
+        setupVehicles();
+        renderVehicles(); // Render vehicles after loading
+    }).catch((error) => {
+        // If loading fails, still setup personal info (will show error message)
+        setupPersonalInfo();
+        setupVehicles();
+        renderVehicles(); // Render vehicles even if loading failed (will show empty list)
+    });
 });
 
 
@@ -112,11 +129,13 @@ function enablePersonalInfoEditing() {
     
     firstNameInput.readOnly = false;
     lastNameInput.readOnly = false;
-    emailInput.readOnly = false;
+    // Email is read-only - cannot be changed through customer-service
+    emailInput.readOnly = true;
     
     firstNameInput.classList.add('editable');
     lastNameInput.classList.add('editable');
-    emailInput.classList.add('editable');
+    // Email stays read-only
+    emailInput.classList.remove('editable');
     
     document.getElementById('editPersonalInfoBtn').style.display = 'none';
     document.getElementById('personalInfoSaveCancel').style.display = 'flex';
@@ -149,20 +168,24 @@ async function savePersonalInfo() {
     const lastName = lastNameInput.value.trim();
     const email = emailInput.value.trim();
 
-    if (!firstName || !lastName || !email) {
-        alert('Please fill in all fields');
+    if (!firstName || !lastName) {
+        alert('Please fill in first name and last name');
         return;
     }
 
-    if (!isValidEmail(email)) {
+    // Email is read-only and cannot be changed through this interface
+    // It's managed by accounts-service and requires separate email change flow
+    if (email && !isValidEmail(email)) {
         alert('Please enter a valid email address');
         return;
     }
 
     try {
-        await updatePersonalInfo({ firstName, lastName, email });
-        userData = { firstName, lastName, email };
+        // Only update firstName and lastName - email cannot be changed here
+        await updatePersonalInfo({ firstName, lastName });
+        userData = { firstName, lastName, email: userData.email }; // Keep original email
         disablePersonalInfoEditing();
+        alert('Personal information updated successfully');
     } catch (error) {
         alert('Error updating personal information. Please try again.');
     }
@@ -373,20 +396,17 @@ async function handleAddVehicle() {
 function setupAccountActions() {
     document.getElementById('privacyPolicyLink').addEventListener('click', function(e) {
         e.preventDefault();
-        console.log('Privacy Policy clicked');
-
+        window.location.href = 'privacy-policy.html';
     });
 
     document.getElementById('termsLink').addEventListener('click', function(e) {
         e.preventDefault();
-        console.log('Terms of service clicked');
-
+        window.location.href = 'terms-of-service.html';
     });
 
     document.getElementById('helpSupportLink').addEventListener('click', function(e) {
         e.preventDefault();
-        console.log('Help & Support clicked');
-
+        window.location.href = 'help-support.html';
     });
 
     document.getElementById('deleteAccountLink').addEventListener('click', function(e) {
@@ -412,225 +432,157 @@ function setupLogout() {
 
 function handleLogout() {
     if (confirm('Are you sure you want to log out?')) {
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('user');
+        api.clearToken();
         window.location.href = 'home.html';
     }
 }
 
 
 async function loadUserData() {
-    if (USE_API && API_BASE_URL) {
-        try {
-            const response = await fetch(`${API_BASE_URL}/user/profile`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                }
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const data = await response.json();
-            userData = {
-                firstName: data.firstName || '',
-                lastName: data.lastName || '',
-                email: data.email || ''
-            };
-        } catch (error) {
-            console.error('Error loading user data:', error);
-            userData = { firstName: '', lastName: '', email: '' };
-        }
-    } else {
-
+    try {
+        const data = await api.get('/customer/profile');
         userData = {
-            firstName: 'John',
-            lastName: 'Doe',
-            email: 'john.doe@email.com'
+            firstName: data.firstName || data.first_name || '',
+            lastName: data.lastName || data.last_name || '',
+            email: data.email || ''
         };
+        
+        // Only set input values if data was successfully loaded
+        document.getElementById('firstNameInput').value = userData.firstName;
+        document.getElementById('lastNameInput').value = userData.lastName;
+        document.getElementById('emailInput').value = userData.email;
+    } catch (error) {
+        // Check if it's an authorization error
+        if (error && (error.message.includes('401') || error.message.includes('Unauthorized'))) {
+            api.redirectToLogin();
+            return;
+        }
+        console.error('Error loading user data:', error);
+        // Clear placeholder values and show error message
+        const firstNameInput = document.getElementById('firstNameInput');
+        const lastNameInput = document.getElementById('lastNameInput');
+        const emailInput = document.getElementById('emailInput');
+        
+        if (firstNameInput) firstNameInput.value = '';
+        if (lastNameInput) lastNameInput.value = '';
+        if (emailInput) emailInput.value = '';
+        
+        // Show error message
+        const errorMessage = document.getElementById('errorMessage') || document.createElement('div');
+        if (!errorMessage.id) {
+            errorMessage.id = 'errorMessage';
+            errorMessage.style.cssText = 'color: red; padding: 10px; margin: 10px 0; background-color: #fee; border: 1px solid #fcc; border-radius: 4px;';
+            const personalInfoSection = document.querySelector('.personal-info-section');
+            if (personalInfoSection) {
+                const fieldsContainer = document.getElementById('personalInfoFields');
+                if (fieldsContainer && fieldsContainer.parentNode) {
+                    fieldsContainer.parentNode.insertBefore(errorMessage, fieldsContainer);
+                } else {
+                    personalInfoSection.insertBefore(errorMessage, personalInfoSection.firstChild);
+                }
+            }
+        }
+        errorMessage.textContent = 'Failed to load user data. Please refresh the page or try again later.';
     }
-
-    document.getElementById('firstNameInput').value = userData.firstName;
-    document.getElementById('lastNameInput').value = userData.lastName;
-    document.getElementById('emailInput').value = userData.email;
 }
 
 async function updatePersonalInfo(data) {
-    if (USE_API && API_BASE_URL) {
-        try {
-            const response = await fetch(`${API_BASE_URL}/user/profile`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(data)
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            return await response.json();
-        } catch (error) {
-            console.error('Error updating personal info:', error);
-            throw error;
-        }
-    } else {
-
-        await new Promise(resolve => setTimeout(resolve, 500));
+    try {
+        // Customer service expects query params for PUT
+        // Note: Email cannot be changed through customer-service (it's managed by accounts-service)
+        const params = new URLSearchParams();
+        params.append('firstName', data.firstName);
+        params.append('lastName', data.lastName);
+        
+        await api.put(`/customer/profile?${params.toString()}`, null);
         return { success: true };
+    } catch (error) {
+        console.error('Error updating personal info:', error);
+        throw error;
     }
 }
 
 async function changePassword(currentPassword, newPassword) {
-    if (USE_API && API_BASE_URL) {
-        try {
-            const response = await fetch(`${API_BASE_URL}/user/password`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    currentPassword,
-                    newPassword
-                })
-            });
-
-            if (!response.ok) {
-                if (response.status === 401) {
-                    throw new Error('Current password is incorrect');
-                }
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            return await response.json();
-        } catch (error) {
-            console.error('Error changing password:', error);
-            throw error;
-        }
-    } else {
-
-        await new Promise(resolve => setTimeout(resolve, 500));
+    try {
+        // Note: This endpoint needs to be implemented in customer-service
+        await api.put('/customer/password', {
+            currentPassword,
+            newPassword
+        });
         return { success: true };
+    } catch (error) {
+        console.error('Error changing password:', error);
+        if (error.message.includes('401') || error.message.includes('incorrect')) {
+            throw new Error('Current password is incorrect');
+        }
+        throw error;
     }
 }
 
 async function loadVehicles() {
-    if (USE_API && API_BASE_URL) {
-        try {
-            const response = await fetch(`${API_BASE_URL}/vehicles`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                }
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const data = await response.json();
+    try {
+        const data = await api.get('/customer/vehicles');
+        // Backend returns List<Map>, transform to array of objects
+        if (Array.isArray(data)) {
+            vehicles = data.map(v => ({
+                id: v.id || v.vehicle_id,
+                plate: v.plate || v.licence_plate || v.licencePlate
+            }));
+        } else {
             vehicles = data.vehicles || [];
-        } catch (error) {
-            console.error('Error loading vehicles:', error);
-            vehicles = [];
         }
-    } else {
-        vehicles = [
-            { id: 1, plate: 'KK971PL' },
-            { id: 2, plate: 'WA12345' }
-        ];
+    } catch (error) {
+        // Check if it's an authorization error
+        if (error && (error.message.includes('401') || error.message.includes('Unauthorized'))) {
+            api.redirectToLogin();
+            return;
+        }
+        console.error('Error loading vehicles:', error);
+        vehicles = [];
     }
 }
 
 async function addVehicle(plate) {
-    if (USE_API && API_BASE_URL) {
-        try {
-            const response = await fetch(`${API_BASE_URL}/vehicles`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ plate: plate.toUpperCase() })
-            });
-
-            if (!response.ok) {
-                if (response.status === 409) {
-                    throw new Error('Vehicle with this plate already exists');
-                }
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const data = await response.json();
-            return data.vehicle;
-        } catch (error) {
-            console.error('Error adding vehicle:', error);
-            throw error;
-        }
-    } else {
-        await new Promise(resolve => setTimeout(resolve, 500));
-        const newVehicle = {
-            id: vehicles.length + 1,
+    try {
+        const params = new URLSearchParams();
+        params.append('licencePlate', plate.toUpperCase());
+        
+        const data = await api.post(`/customer/vehicles?${params.toString()}`, null);
+        
+        // Backend returns { id: ... } or { id: ..., ... }
+        return {
+            id: data.id,
             plate: plate.toUpperCase()
         };
-        vehicles.push(newVehicle);
-        return newVehicle;
+    } catch (error) {
+        console.error('Error adding vehicle:', error);
+        if (error.message.includes('409') || error.message.includes('already exists')) {
+            throw new Error('Vehicle with this plate already exists');
+        }
+        throw error;
     }
 }
 
 async function deleteVehicle(vehicleId) {
-    if (USE_API && API_BASE_URL) {
-        try {
-            const response = await fetch(`${API_BASE_URL}/vehicles/${vehicleId}`, {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                }
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            return true;
-        } catch (error) {
-            console.error('Error deleting vehicle:', error);
-            throw error;
-        }
-    } else {
-        vehicles = vehicles.filter(v => v.id !== vehicleId);
+    try {
+        // Note: This endpoint needs to be implemented in customer-service
+        await api.delete(`/customer/vehicles/${vehicleId}`);
         return true;
+    } catch (error) {
+        console.error('Error deleting vehicle:', error);
+        throw error;
     }
 }
 
 async function deleteAccount() {
-    if (USE_API && API_BASE_URL) {
-        try {
-            const response = await fetch(`${API_BASE_URL}/user/account`, {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                }
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            localStorage.removeItem('authToken');
-            localStorage.removeItem('user');
-            window.location.href = 'home.html';
-        } catch (error) {
-            console.error('Error deleting account:', error);
-            alert('Error deleting account. Please try again.');
-        }
-    } else {
-        await new Promise(resolve => setTimeout(resolve, 500));
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('user');
+    try {
+        // Note: This endpoint needs to be implemented in customer-service or accounts-service
+        await api.delete('/customer/account');
+        api.clearToken();
         window.location.href = 'home.html';
+    } catch (error) {
+        console.error('Error deleting account:', error);
+        alert('Error deleting account. Please try again.');
     }
 }
 
@@ -638,4 +590,5 @@ function isValidEmail(email) {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
 }
+
 

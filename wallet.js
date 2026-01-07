@@ -1,5 +1,4 @@
-const API_BASE_URL = null;
-const USE_API = false;
+// API module is loaded from api.js
 
 let walletData = {
     balance: 0,
@@ -18,12 +17,16 @@ let selectedPaymentMethod = 'blik';
 let isCustomAmount = false;
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Check authorization before executing any requests
+    if (!api.isTokenValid()) {
+        api.redirectToLogin();
+        return; // Don't load the page
+    }
 
     const logoLink = document.getElementById('logoLink');
     if (logoLink) {
         const handleLogoNavigation = function() {
-            const authToken = localStorage.getItem('authToken');
-            if (authToken) {
+            if (api.isTokenValid()) {
                 window.location.href = 'dashboard.html';
             } else {
                 window.location.href = 'home.html';
@@ -39,11 +42,23 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    setupHeader();
-    setupBottomNavigation();
+    // Setup modal and filters first (don't require API calls)
     setupTopUpModal();
     setupFilters();
-    loadWalletData();
+    
+    // Load data first, then setup header and navigation
+    // This ensures header/navigation reflect the actual authentication state
+    loadWalletData().then(() => {
+        // After data is loaded, setup header and navigation
+        // This ensures they reflect the correct state
+        setupHeader();
+        setupBottomNavigation();
+    }).catch((error) => {
+        // If loadWalletData fails, still setup header/navigation
+        // They will show logged out state if token is invalid
+        setupHeader();
+        setupBottomNavigation();
+    });
 });
 
 
@@ -73,7 +88,7 @@ function setupLoggedInHeader() {
     const userIconBtn = document.getElementById('loggedInNavHeader');
     if (userIconBtn) {
         userIconBtn.addEventListener('click', function() {
-            console.log('User icon clicked');
+            window.location.href = 'profile.html';
         });
     }
 }
@@ -140,8 +155,7 @@ function setupLoggedOutNavigation() {
 }
 
 function isUserLoggedIn() {
-    const authToken = localStorage.getItem('authToken');
-    return !!authToken;
+    return api.isTokenValid();
 }
 
 
@@ -276,154 +290,93 @@ function applyFilters() {
 }
 
 async function loadWalletData() {
-    await Promise.all([
+    // Use Promise.allSettled() instead of Promise.all() to handle partial failures gracefully
+    const results = await Promise.allSettled([
         loadWalletBalance(),
         loadTransactions()
     ]);
+    
+    // Check for 401 errors and redirect if needed
+    let hasUnauthorizedError = false;
+    results.forEach((result, index) => {
+        if (result.status === 'rejected') {
+            const error = result.reason;
+            if (error && (error.message.includes('401') || error.message.includes('Unauthorized'))) {
+                hasUnauthorizedError = true;
+            } else {
+                console.error(`Error loading wallet data ${index}:`, error);
+            }
+        }
+    });
+    
+    if (hasUnauthorizedError) {
+        api.redirectToLogin();
+        return;
+    }
+    
     renderWalletData();
     renderTransactions();
 }
 
 async function loadWalletBalance() {
-    if (USE_API && API_BASE_URL) {
-        try {
-            const response = await fetch(`${API_BASE_URL}/wallet/balance`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                }
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const data = await response.json();
-            walletData = {
-                balance: data.balance || 0,
-                totalSpent: data.totalSpent || 0,
-                totalTopUps: data.totalTopUps || 0,
-                totalTransactions: data.totalTransactions || 0
-            };
-        } catch (error) {
-            console.error('Error loading wallet balance:', error);
-            walletData = { balance: 0, totalSpent: 0, totalTopUps: 0, totalTransactions: 0 };
-        }
-    } else {
+    try {
+        const data = await api.get('/customer/wallet');
+        // Backend returns balance_minor (in cents), convert to dollars
+        const balance = data.balance_minor ? parseFloat(data.balance_minor) / 100 : 0;
         walletData = {
-            balance: 45.80,
-            totalSpent: 125.50,
-            totalTopUps: 200.00,
-            totalTransactions: 23
+            balance: balance,
+            totalSpent: data.totalSpent || 0,
+            totalTopUps: data.totalTopUps || 0,
+            totalTransactions: data.totalTransactions || transactions.length
         };
+    } catch (error) {
+        // Check if it's an authorization error (401) - only 401 should cause redirect
+        if (error && (error.message.includes('401') || error.message.includes('Unauthorized'))) {
+            throw error; // Re-throw to be handled by Promise.allSettled
+        }
+        // For 404 or other errors, set default values without throwing
+        // This allows the page to load with empty wallet data
+        if (error && error.message.includes('404')) {
+            console.log('Wallet not found (404), using default values');
+        } else {
+            console.error('Error loading wallet balance:', error);
+        }
+        walletData = { balance: 0, totalSpent: 0, totalTopUps: 0, totalTransactions: 0 };
     }
 }
 
 async function loadTransactions() {
-    if (USE_API && API_BASE_URL) {
-        try {
-            const response = await fetch(`${API_BASE_URL}/wallet/transactions`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                }
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const data = await response.json();
-            transactions = data.transactions || [];
-        } catch (error) {
-            console.error('Error loading transactions:', error);
-            transactions = [];
+    try {
+        // Note: This endpoint needs to be implemented in customer-service or payment-service
+        // For now, return empty array
+        transactions = [];
+    } catch (error) {
+        // Check if it's an authorization error
+        if (error && (error.message.includes('401') || error.message.includes('Unauthorized'))) {
+            throw error; // Re-throw to be handled by Promise.allSettled
         }
-    } else {
-        transactions = [
-            {
-                id: 1,
-                type: 'payment',
-                title: 'Parking Payment',
-                details: 'Downtown Plaza • A-23',
-                amount: -8.50,
-                date: new Date().toISOString().split('T')[0],
-                time: '14:30'
-            },
-            {
-                id: 2,
-                type: 'topup',
-                title: 'Wallet Top Up',
-                details: 'BLIK',
-                amount: 50.00,
-                date: new Date(Date.now() - 86400000).toISOString().split('T')[0],
-                time: '10:15'
-            },
-            {
-                id: 3,
-                type: 'payment',
-                title: 'Parking Payment',
-                details: 'Downtown Plaza • A-23',
-                amount: -8.50,
-                date: new Date(Date.now() - 86400000).toISOString().split('T')[0],
-                time: '14:30'
-            },
-            {
-                id: 4,
-                type: 'topup',
-                title: 'Wallet Top Up',
-                details: 'Credit Card ****4923',
-                amount: 50.00,
-                date: '2025-11-08',
-                time: '10:15'
-            }
-        ];
+        console.error('Error loading transactions:', error);
+        transactions = [];
     }
 }
 
 async function processTopUp(amount, paymentMethod) {
-    if (USE_API && API_BASE_URL) {
-        try {
-            const response = await fetch(`${API_BASE_URL}/wallet/topup`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    amount: amount,
-                    paymentMethod: paymentMethod
-                })
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const data = await response.json();
-            return data;
-        } catch (error) {
-            console.error('Error processing top up:', error);
-            throw error;
+    try {
+        // Wywołaj endpoint backendu
+        if (api && typeof api.post === 'function') {
+            const payload = { 
+                amountMinor: Math.round(amount * 100), 
+                paymentMethod: paymentMethod || 'blik' 
+            };
+            const res = await api.post('/customer/wallet/topup', payload);
+            // Backend zwraca: { paymentId, newBalance }
+            return { success: true, paymentId: res.paymentId, newBalance: res.newBalance };
+        } else {
+            throw new Error('API post not available');
         }
-    } else {
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        
-        const newTransaction = {
-            id: transactions.length + 1,
-            type: 'topup',
-            title: 'Wallet Top Up',
-            details: paymentMethod === 'blik' ? 'BLIK' : 'Bank Transfer',
-            amount: amount,
-            date: new Date().toISOString().split('T')[0],
-            time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })
-        };
-        
-        transactions.unshift(newTransaction);
-        walletData.balance += amount;
-        walletData.totalTopUps += amount;
-        walletData.totalTransactions += 1;
-        
-        return { success: true };
+    } catch (error) {
+        console.error('Top up API failed:', error);
+        throw error; // Rzuć błąd zamiast używać fallback - backend powinien działać
     }
 }
 

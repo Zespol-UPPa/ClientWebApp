@@ -1,5 +1,4 @@
-const API_BASE_URL = null;
-const USE_API = false;
+// API module is loaded from api.js
 
 // Global state
 let activeReservations = [];
@@ -8,11 +7,16 @@ let pastReservations = [];
 let currentTab = 'active';
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Check authorization before executing any requests
+    if (!api.isTokenValid()) {
+        api.redirectToLogin();
+        return; // Don't load the page
+    }
+    
     const logoLink = document.getElementById('logoLink');
     if (logoLink) {
         const handleLogoNavigation = function() {
-            const authToken = localStorage.getItem('authToken');
-            if (authToken) {
+            if (api.isTokenValid()) {
                 window.location.href = 'dashboard.html';
             } else {
                 window.location.href = 'home.html';
@@ -127,8 +131,7 @@ function setupLoggedOutNavigation() {
 }
 
 function isUserLoggedIn() {
-    const authToken = localStorage.getItem('authToken');
-    return !!authToken;
+    return api.isTokenValid();
 }
 
 
@@ -158,87 +161,55 @@ function switchTab(tab) {
 
 
 async function loadReservations() {
-    if (USE_API && API_BASE_URL) {
-        try {
-            const response = await fetch(`${API_BASE_URL}/reservations`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
+    try {
+        const data = await api.get('/customer/reservations');
+        
+        // Backend returns List<Map>, transform to { active, upcoming, past }
+        const now = new Date();
+        activeReservations = [];
+        upcomingReservations = [];
+        pastReservations = [];
+        
+        if (Array.isArray(data)) {
+            data.forEach(r => {
+                const validUntil = r.validUntil ? new Date(r.validUntil) : null;
+                const reservation = {
+                    id: r.id || r.reservation_id,
+                    parkingName: r.parkingName || r.location_name || 'Unknown',
+                    address: r.address || r.location_address || '',
+                    spot: r.spot_code || r.spotCode || 'Unknown',
+                    vehicle: r.vehicle_plate || r.vehiclePlate || '',
+                    date: validUntil ? validUntil.toISOString().split('T')[0] : '',
+                    checkIn: r.check_in || null,
+                    fee: r.fee || null,
+                    isPaid: r.status === 'Paid' || false,
+                    isNonRefundable: r.status === 'Paid' || false
+                };
+                
+                if (validUntil && validUntil > now && (r.status === 'Paid' || r.status === 'Active')) {
+                    activeReservations.push(reservation);
+                } else if (validUntil && validUntil > now) {
+                    upcomingReservations.push(reservation);
+                } else {
+                    pastReservations.push(reservation);
                 }
             });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const data = await response.json();
+        } else {
+            // Fallback if backend returns different format
             activeReservations = data.active || [];
             upcomingReservations = data.upcoming || [];
             pastReservations = data.past || [];
-        } catch (error) {
-            console.error('Error loading reservations:', error);
-            activeReservations = [];
-            upcomingReservations = [];
-            pastReservations = [];
         }
-    } else {
-        activeReservations = [
-            {
-                id: 1,
-                parkingName: 'Downtown Plaza',
-                address: '123 Main Street',
-                spot: 'R-23',
-                vehicle: 'KK12345',
-                date: '2025-11-10',
-                checkIn: null
-            }
-        ];
-        
-        upcomingReservations = [
-            {
-                id: 2,
-                parkingName: 'Downtown Plaza',
-                address: '123 Main Street',
-                spot: 'R-23',
-                vehicle: 'KK12345',
-                date: '2025-11-12',
-                fee: 'Pay after visit',
-                isNonRefundable: true
-            },
-            {
-                id: 3,
-                parkingName: 'Downtown Plaza',
-                address: '123 Main Street',
-                spot: 'R-23',
-                vehicle: 'KK12345',
-                date: '2025-11-12',
-                fee: 'Pay after visit',
-                isNonRefundable: true
-            }
-        ];
-        
-        pastReservations = [
-            {
-                id: 4,
-                parkingName: 'Downtown Plaza',
-                address: '123 Main Street',
-                spot: 'R-23',
-                vehicle: 'KK12345',
-                date: '2025-11-12',
-                fee: 8.50,
-                isPaid: false
-            },
-            {
-                id: 5,
-                parkingName: 'Downtown Plaza',
-                address: '123 Main Street',
-                spot: 'R-23',
-                vehicle: 'KK12345',
-                date: '2025-11-12',
-                fee: 8.50,
-                isPaid: true
-            }
-        ];
+    } catch (error) {
+        // Check if it's an authorization error
+        if (error && (error.message.includes('401') || error.message.includes('Unauthorized'))) {
+            api.redirectToLogin();
+            return;
+        }
+        console.error('Error loading reservations:', error);
+        activeReservations = [];
+        upcomingReservations = [];
+        pastReservations = [];
     }
     
     renderReservations();
