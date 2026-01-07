@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="ParkFlow Help & Support - Contact us for assistance">
+    <title>ParkFlow - Help & Support</title>
+    <link rel="stylesheet" href="home.css">
+    <style>
+        .help-container {
+            padding: 40px 32px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .help-header {
+            margin-bottom: 30px;
+        }
+        
+        .help-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 10px;
+        }
+        
+        .help-subtitle {
+            color: #666;
+            font-size: 16px;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        
+        .contact-form {
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .form-group {
+            margin-bottom: 24px;
+        }
+        
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 8px;
+        }
+        
+        .form-input,
+        .form-textarea {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 16px;
+            font-family: inherit;
+            transition: border-color 0.2s;
+            background: #f9fafb;
+        }
+        
+        .form-input:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: #6b46c1;
+            background: white;
+        }
+        
+        .form-textarea {
+            min-height: 150px;
+            resize: vertical;
+        }
+        
+        .form-input::placeholder,
+        .form-textarea::placeholder {
+            color: #9ca3af;
+        }
+        
+        .submit-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #6B46C1 0%, #8B5CF6 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 8px;
+        }
+        
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(107, 70, 193, 0.4);
+        }
+        
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+        
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .success-message {
+            background: #d1fae5;
+            color: #065f46;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+            border-left: 4px solid #10b981;
+        }
+        
+        .error-message {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+            border-left: 4px solid #ef4444;
+        }
+        
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #6b46c1;
+            text-decoration: none;
+            font-weight: 500;
+            margin-bottom: 20px;
+            transition: opacity 0.2s;
+        }
+        
+        .back-link:hover {
+            opacity: 0.8;
+        }
+        
+        .info-box {
+            background: #f3f4f6;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border-left: 4px solid #6b46c1;
+        }
+        
+        .info-box p {
+            margin: 0;
+            color: #4b5563;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    <div class="phone-container">
+        <header class="header" role="banner">
+            <div class="logo" id="logoLink" role="button" tabindex="0" aria-label="Go to homepage">
+                <img src="resources/ParkFlowIconPurple.svg" alt="ParkFlow logo" class="logo-icon">
+            </div>
+        </header>
+
+        <main id="main-content" class="help-container">
+            <a href="profile.html" class="back-link">← Back to Profile</a>
+            
+            <div class="help-header">
+                <h1 class="help-title">Help & Support</h1>
+                <p class="help-subtitle">
+                    Have a question or need assistance? Fill out the form below and we'll get back to you as soon as possible.
+                </p>
+            </div>
+
+            <div class="info-box">
+                <p>
+                    <strong>💡 Tip:</strong> If you're logged in, your account information will be automatically filled in. 
+                    You can still modify it if needed.
+                </p>
+            </div>
+
+            <form id="contactForm" class="contact-form" aria-label="Contact form">
+                <div id="successMessage" class="success-message" role="alert">
+                    ✓ Your message has been sent successfully! We'll get back to you soon.
+                </div>
+                
+                <div id="errorMessage" class="error-message" role="alert"></div>
+
+                <div class="form-group">
+                    <label for="nameInput" class="form-label">Name</label>
+                    <input 
+                        type="text" 
+                        id="nameInput" 
+                        class="form-input" 
+                        placeholder="Your name"
+                        required
+                        aria-required="true"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="emailInput" class="form-label">Email</label>
+                    <input 
+                        type="email" 
+                        id="emailInput" 
+                        class="form-input" 
+                        placeholder="your.email@example.com"
+                        required
+                        aria-required="true"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="subjectInput" class="form-label">Subject</label>
+                    <input 
+                        type="text" 
+                        id="subjectInput" 
+                        class="form-input" 
+                        placeholder="What is this regarding?"
+                        required
+                        aria-required="true"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="messageInput" class="form-label">Message</label>
+                    <textarea 
+                        id="messageInput" 
+                        class="form-textarea" 
+                        placeholder="Please describe your question or issue in detail..."
+                        required
+                        aria-required="true"
+                    ></textarea>
+                </div>
+
+                <button type="submit" class="submit-btn" id="submitBtn">
+                    Send Message
+                </button>
+            </form>
+        </main>
+    </div>
+
+    <script src="api.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const logoLink = document.getElementById('logoLink');
+            if (logoLink) {
+                logoLink.addEventListener('click', function() {
+                    if (api && api.isTokenValid && api.isTokenValid()) {
+                        window.location.href = 'dashboard.html';
+                    } else {
+                        window.location.href = 'home.html';
+                    }
+                });
+            }
+
+            // Load user data if logged in
+            if (api && api.isTokenValid && api.isTokenValid()) {
+                loadUserData();
+            }
+
+            const contactForm = document.getElementById('contactForm');
+            const submitBtn = document.getElementById('submitBtn');
+            const successMessage = document.getElementById('successMessage');
+            const errorMessage = document.getElementById('errorMessage');
+            const nameInput = document.getElementById('nameInput');
+            const emailInput = document.getElementById('emailInput');
+            const subjectInput = document.getElementById('subjectInput');
+            const messageInput = document.getElementById('messageInput');
+
+            contactForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                // Hide previous messages
+                successMessage.style.display = 'none';
+                errorMessage.style.display = 'none';
+                
+                // Disable submit button
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Sending...';
+                
+                try {
+                    const response = await api.post('/customer/contact', {
+                        name: nameInput.value.trim(),
+                        email: emailInput.value.trim(),
+                        subject: subjectInput.value.trim(),
+                        message: messageInput.value.trim()
+                    });
+                    
+                    // Show success message
+                    successMessage.style.display = 'block';
+                    
+                    // Reset form
+                    contactForm.reset();
+                    
+                    // Scroll to top
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    
+                } catch (error) {
+                    console.error('Error submitting contact form:', error);
+                    errorMessage.textContent = error.message || 'Failed to send message. Please try again.';
+                    errorMessage.style.display = 'block';
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Send Message';
+                }
+            });
+
+            async function loadUserData() {
+                try {
+                    const profile = await api.get('/customer/profile');
+                    if (profile && profile.email) {
+                        emailInput.value = profile.email || '';
+                    }
+                    if (profile && (profile.firstName || profile.lastName)) {
+                        const name = [profile.firstName, profile.lastName].filter(Boolean).join(' ');
+                        if (name) {
+                            nameInput.value = name;
+                        }
+                    }
+                } catch (error) {
+                    // If user data can't be loaded, just continue with empty form
+                    console.log('Could not load user data for contact form:', error);
+                }
+            }
+        });
+    </script>
+</body>
+</html>
+

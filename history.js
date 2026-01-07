@@ -1,5 +1,4 @@
-const API_BASE_URL = null;
-const USE_API = false;
+// API module is loaded from api.js
 
 
 let statistics = {
@@ -15,12 +14,16 @@ let startDate = null;
 let endDate = null;
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Check authorization before executing any requests
+    if (!api.isTokenValid()) {
+        api.redirectToLogin();
+        return; // Don't load the page
+    }
 
     const logoLink = document.getElementById('logoLink');
     if (logoLink) {
         const handleLogoNavigation = function() {
-            const authToken = localStorage.getItem('authToken');
-            if (authToken) {
+            if (api.isTokenValid()) {
                 window.location.href = 'dashboard.html';
             } else {
                 window.location.href = 'home.html';
@@ -36,10 +39,22 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    setupHeader();
-    setupBottomNavigation();
+    // Setup filters first (doesn't require API calls)
     setupFilters();
-    loadHistory();
+    
+    // Load data first, then setup header and navigation
+    // This ensures header/navigation reflect the actual authentication state
+    loadHistory().then(() => {
+        // After data is loaded, setup header and navigation
+        // This ensures they reflect the correct state
+        setupHeader();
+        setupBottomNavigation();
+    }).catch((error) => {
+        // If loadHistory fails, still setup header/navigation
+        // They will show logged out state if token is invalid
+        setupHeader();
+        setupBottomNavigation();
+    });
 });
 
 
@@ -68,7 +83,7 @@ function setupLoggedInHeader() {
     const userIconBtn = document.getElementById('loggedInNavHeader');
     if (userIconBtn) {
         userIconBtn.addEventListener('click', function() {
-            console.log('User icon clicked');
+            window.location.href = 'profile.html';
         });
     }
 }
@@ -135,8 +150,7 @@ function setupLoggedOutNavigation() {
 }
 
 function isUserLoggedIn() {
-    const authToken = localStorage.getItem('authToken');
-    return !!authToken;
+    return api.isTokenValid();
 }
 
 
@@ -207,108 +221,38 @@ function applyFilters() {
 
 
 async function loadStatistics() {
-    if (USE_API && API_BASE_URL) {
-        try {
-            const response = await fetch(`${API_BASE_URL}/history/statistics`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                }
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const data = await response.json();
-            statistics = {
-                totalSessions: data.totalSessions || 0,
-                totalTime: data.totalTime || 0,
-                totalSpent: data.totalSpent || 0
-            };
-        } catch (error) {
-            console.error('Error loading statistics:', error);
-            statistics = { totalSessions: 0, totalTime: 0, totalSpent: 0 };
-        }
-    } else {
-
+    try {
+        // Note: This endpoint needs to be implemented in customer-service
+        const data = await api.get('/customer/history/statistics');
         statistics = {
-            totalSessions: 47,
-            totalTime: 125,
-            totalSpent: 425
+            totalSessions: data.totalSessions || 0,
+            totalTime: data.totalTime || 0,
+            totalSpent: data.totalSpent || 0
         };
+    } catch (error) {
+        // Check if it's an authorization error
+        if (error && (error.message.includes('401') || error.message.includes('Unauthorized'))) {
+            api.redirectToLogin();
+            return;
+        }
+        console.error('Error loading statistics:', error);
+        statistics = { totalSessions: 0, totalTime: 0, totalSpent: 0 };
     }
 }
 
 async function loadHistory() {
-    if (USE_API && API_BASE_URL) {
-        try {
-            const response = await fetch(`${API_BASE_URL}/history`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                }
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const data = await response.json();
-            historyData = data.sessions || [];
-        } catch (error) {
-            console.error('Error loading history:', error);
-            historyData = [];
+    try {
+        // Note: This endpoint needs to be implemented in customer-service
+        const data = await api.get('/customer/history');
+        historyData = data.sessions || data || [];
+    } catch (error) {
+        // Check if it's an authorization error
+        if (error && (error.message.includes('401') || error.message.includes('Unauthorized'))) {
+            api.redirectToLogin();
+            return;
         }
-    } else {
-
-        historyData = [
-            {
-                id: 1,
-                parkingName: 'Downtown Plaza',
-                address: '123 Main Street',
-                date: '2025-11-10',
-                startTime: '14:00',
-                endTime: '16:30',
-                duration: 2.5,
-                cost: 8.50,
-                vehicle: 'KK12345',
-                spot: 'A-23',
-                parkingId: 'PAR-5847',
-                isPaid: false,
-                paymentMethod: null
-            },
-            {
-                id: 2,
-                parkingName: 'Downtown Plaza',
-                address: '123 Main Street',
-                date: '2025-11-10',
-                startTime: '14:00',
-                endTime: '16:30',
-                duration: 2.5,
-                cost: 8.50,
-                vehicle: 'KK12345',
-                spot: 'A-23',
-                parkingId: 'PAR-5847',
-                isPaid: true,
-                paymentMethod: 'Wallet'
-            },
-            {
-                id: 3,
-                parkingName: 'Central Mall Parking',
-                address: '456 Shopping Avenue',
-                date: '2025-10-15',
-                startTime: '10:00',
-                endTime: '12:30',
-                duration: 2.5,
-                cost: 7.00,
-                vehicle: 'WA12345',
-                spot: 'B-12',
-                parkingId: 'PAR-5848',
-                isPaid: true,
-                paymentMethod: 'Wallet'
-            }
-        ];
+        console.error('Error loading history:', error);
+        historyData = [];
     }
 
     await loadStatistics();
@@ -317,33 +261,13 @@ async function loadHistory() {
 }
 
 async function payForSession(sessionId) {
-    if (USE_API && API_BASE_URL) {
-        try {
-            const response = await fetch(`${API_BASE_URL}/history/${sessionId}/pay`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                }
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            return true;
-        } catch (error) {
-            console.error('Error paying for session:', error);
-            throw error;
-        }
-    } else {
-
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        const session = historyData.find(s => s.id === sessionId);
-        if (session) {
-            session.isPaid = true;
-            session.paymentMethod = 'Wallet';
-        }
+    try {
+        // Note: This endpoint needs to be implemented in customer-service
+        await api.post(`/customer/history/${sessionId}/pay`, null);
         return true;
+    } catch (error) {
+        console.error('Error paying for session:', error);
+        throw error;
     }
 }
 

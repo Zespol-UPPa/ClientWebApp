@@ -160,6 +160,81 @@
         </div>
     </div>
 
+    <div id="editVehicleModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Edit Vehicle</h2>
+                <button class="modal-close" id="closeEditVehicleModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="editVehicleForm">
+                    <div class="input-group">
+                        <label class="input-label">License Plate</label>
+                        <input 
+                            type="text" 
+                            id="editVehiclePlateInput" 
+                            class="form-input" 
+                            placeholder="e.g., KK971PL" 
+                            required
+                            maxlength="10"
+                        >
+                    </div>
+                    <div id="editVehicleErrorMessage" class="error-message" role="alert" aria-live="polite" style="display: none;"></div>
+                    <button type="submit" class="submit-btn" id="submitEditVehicleBtn">Save Changes</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="topUpModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Top Up Wallet</h2>
+                <button class="modal-close" id="closeTopUpModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="amount-selection">
+                    <h4 class="section-label">Select Amount</h4>
+                    <div class="amount-buttons">
+                        <button class="amount-btn" data-amount="10">$10</button>
+                        <button class="amount-btn" data-amount="25">$25</button>
+                        <button class="amount-btn" data-amount="50">$50</button>
+                        <button class="amount-btn" data-amount="100">$100</button>
+                    </div>
+                    <button class="custom-amount-btn" id="customAmountBtn">Custom amount</button>
+                    <input type="number" id="customAmountInput" class="custom-amount-input" placeholder="Enter amount" style="display: none;" min="1" step="0.01">
+                </div>
+
+                <div class="payment-method-selection">
+                    <h4 class="section-label">Payment Method</h4>
+                    <div class="payment-method-options">
+                        <button class="payment-method-btn active" data-method="blik" id="blikMethod">
+                            <img src="resources/phoneIcon.png" alt="BLIK" class="payment-icon">
+                            <div class="payment-method-info">
+                                <span class="payment-method-name">BLIK</span>
+                                <span class="payment-method-subtitle">Mobile payment</span>
+                            </div>
+                            <img src="resources/checkIcon.png" alt="Selected" class="check-icon">
+                        </button>
+                        <button class="payment-method-btn" data-method="bank" id="bankMethod">
+                            <img src="resources/BankIcon.png" alt="Bank Transfer" class="payment-icon">
+                            <div class="payment-method-info">
+                                <span class="payment-method-name">Bank Transfer</span>
+                                <span class="payment-method-subtitle">PKO Bank Polski</span>
+                            </div>
+                            <img src="resources/checkIcon.png" alt="Selected" class="check-icon" style="display: none;">
+                        </button>
+                    </div>
+                </div>
+
+                <div id="topUpErrorMessage" class="error-message" style="display: none;"></div>
+
+                <button class="top-up-submit-btn" id="topUpSubmitBtn">Top Up $10.00</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="api.js"></script>
     <script src="dashboard.js"></script>
 </body>
 </html>

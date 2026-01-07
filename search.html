@@ -124,6 +124,22 @@
                         </div>
                     </div>
 
+                    <div class="input-group">
+                        <label for="reserveTimeInput" class="input-label">
+                            <img src="resources/documentTimeIcon.png" alt="" class="input-label-icon" aria-hidden="true">
+                            Time
+                        </label>
+                        <div class="input-wrapper">
+                            <input 
+                                type="time" 
+                                id="reserveTimeInput" 
+                                class="form-input form-time" 
+                                required
+                                aria-required="true"
+                            >
+                        </div>
+                    </div>
+
                     <div class="info-notice" role="note">
                         <img src="resources/warningIcon.png" alt="" class="info-icon-small" aria-hidden="true">
                         <span>Reservations can only be made for tomorrow</span>
@@ -211,9 +227,29 @@
                             <span id="modalRate" class="info-value">$4.25/hour</span>
                         </div>
                     </div>
+                    
+                    <div class="info-item">
+                        <div class="info-icon-wrapper">
+                            <img src="resources/clockIcon.png" alt="Free minutes" class="info-icon-small">
+                        </div>
+                        <div class="info-content">
+                            <span class="info-label">Free minutes</span>
+                            <span id="modalFreeMinutes" class="info-value">15 minutes</span>
+                        </div>
+                    </div>
+                    
+                    <div class="info-item">
+                        <div class="info-icon-wrapper">
+                            <img src="resources/timeIcon.png" alt="Billing step" class="info-icon-small">
+                        </div>
+                        <div class="info-content">
+                            <span class="info-label">Billing step</span>
+                            <span id="modalRoundingStep" class="info-value">5 minutes</span>
+                        </div>
+                    </div>
                 </div> 
                 <div class="chart-section">
-                    <h3 class="chart-title">Typical occupancy by hour</h3>
+                    <h3 class="chart-title" id="chartTitle">Typical occupancy by hour</h3>
                     <div class="chart-container">
                         <canvas id="occupancyChart"></canvas>
                     </div>
@@ -232,6 +268,7 @@
         </div>
     </div>
 
+    <script src="api.js"></script>
     <script src="search.js"></script>
 </body>
 </html>

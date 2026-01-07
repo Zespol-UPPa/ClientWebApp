@@ -1,14 +1,11 @@
-
-const API_BASE_URL = null;
-const USE_API = false;
+// API module is loaded from api.js
 
 document.addEventListener('DOMContentLoaded', function() {
 
     const logoLink = document.getElementById('logoLink');
     if (logoLink) {
         const handleLogoNavigation = function() {
-            const authToken = localStorage.getItem('authToken');
-            if (authToken) {
+            if (api.isTokenValid()) {
                 window.location.href = 'dashboard.html';
             } else {
                 window.location.href = 'home.html';
@@ -94,48 +91,24 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     async function attemptLogin(email, password) {
-        if (USE_API && API_BASE_URL) {
-            try {
-                const response = await fetch(`${API_BASE_URL}/auth/login`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        email: email,
-                        password: password
-                    })
-                });
-
-                if (!response.ok) {
-                    if (response.status === 401) {
-                        return false;
-                    }
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-
-                const data = await response.json();
-                
-                if (data.token) {
-                    localStorage.setItem('authToken', data.token);
-                }
-                
-                return true;
-            } catch (error) {
-                console.error('API login error:', error);
-                throw error;
-            }
-        } else {
-            await new Promise(resolve => setTimeout(resolve, 1000));
+        try {
+            const data = await api.post('/api/auth/login', {
+                username: email,
+                password: password
+            }, false); // Login doesn't require auth
             
-            if (email === 'demo@parkflow.com' && password === 'demo123') {
-                console.log('Mock login successful');
-
-                localStorage.setItem('authToken', 'mock-token-' + Date.now());
+            if (data.token) {
+                api.setToken(data.token);
                 return true;
             }
             
             return false;
+        } catch (error) {
+            console.error('API login error:', error);
+            if (error.message.includes('401') || error.message.includes('Unauthorized')) {
+                return false;
+            }
+            throw error;
         }
     }
 

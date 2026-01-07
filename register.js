@@ -1,13 +1,11 @@
-const API_BASE_URL = null;
-const USE_API = false;
+// API module is loaded from api.js
 
 document.addEventListener('DOMContentLoaded', function() {
 
     const logoLink = document.getElementById('logoLink');
     if (logoLink) {
         const handleLogoNavigation = function() {
-            const authToken = localStorage.getItem('authToken');
-            if (authToken) {
+            if (api.isTokenValid()) {
                 window.location.href = 'dashboard.html';
             } else {
                 window.location.href = 'home.html';
@@ -83,16 +81,28 @@ document.addEventListener('DOMContentLoaded', function() {
         signUpBtn.textContent = 'Signing up...';
 
         try {
-            const success = await attemptRegister({
+            const response = await attemptRegister({
                 email,
                 password,
                 firstName,
                 lastName
             });
             
-            if (success) {
-                console.log('Registration successful');
-                window.location.href = 'login.html';
+            if (response) {
+                // Show success message instead of redirecting
+                registerForm.style.display = 'none';
+                const successMessage = document.createElement('div');
+                successMessage.className = 'success-message';
+                successMessage.style.cssText = 'background-color: #d4edda; color: #155724; padding: 20px; border-radius: 4px; margin: 20px 0; text-align: center;';
+                successMessage.innerHTML = `
+                    <h3 style="margin-top: 0;">Registration Successful!</h3>
+                    <p>We've sent a verification email to <strong>${email}</strong>.</p>
+                    <p>Please check your email and click the verification link to activate your account.</p>
+                    <p style="margin-top: 20px;">
+                        <a href="login.html" style="color: #6B46C1; text-decoration: underline;">Go to Sign In</a>
+                    </p>
+                `;
+                registerForm.parentNode.insertBefore(successMessage, registerForm.nextSibling);
             } else {
                 showError('Registration failed. Please try again.');
             }
@@ -132,47 +142,26 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     async function attemptRegister(userData) {
-        if (USE_API && API_BASE_URL) {
-            try {
-                const response = await fetch(`${API_BASE_URL}/auth/register`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        email: userData.email,
-                        password: userData.password,
-                        firstName: userData.firstName,
-                        lastName: userData.lastName
-                    })
-                });
-
-                if (!response.ok) {
-                    if (response.status === 409) {
-                        showError('Email already exists. Please use a different email.');
-                        return false;
-                    }
-                    if (response.status === 400) {
-                        const errorData = await response.json();
-                        showError(errorData.message || 'Invalid registration data');
-                        return false;
-                    }
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-
-                const data = await response.json();
-                
-                // TODO: Store authentication token 
-                
-                return true;
-            } catch (error) {
-                console.error('API registration error:', error);
-                throw error;
+        try {
+            const response = await api.post('/api/auth/register', {
+                username: userData.email,
+                password: userData.password,
+                firstName: userData.firstName,
+                lastName: userData.lastName
+            }, false); // Registration doesn't require auth
+            
+            return response; // Return response object which contains message
+        } catch (error) {
+            console.error('API registration error:', error);
+            if (error.message.includes('409') || error.message.includes('already exists')) {
+                showError('Email already exists. Please use a different email.');
+                return false;
             }
-        } else {
-            await new Promise(resolve => setTimeout(resolve, 1500));
-            console.log('Mock registration successful');
-            return true;
+            if (error.message.includes('400') || error.message.includes('Invalid')) {
+                showError('Invalid registration data. Please check your information.');
+                return false;
+            }
+            throw error;
         }
     }
     emailInput.addEventListener('input', hideError);
