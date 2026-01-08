@@ -1,5 +1,17 @@
 // API module is loaded from api.js
-
+//Development mock login 
+const MOCK_MODE = true;
+const MOCK_TOKEN = (() => {
+    // Utwórz prosty JWT dla testowania
+    const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
+    const now = Math.floor(Date.now() / 1000);
+    const payload = btoa(JSON.stringify({ 
+        sub: 'mock-user',
+        exp: now + 86400, // Ważny przez 24h
+        iat: now
+    }));
+    return `${header}.${payload}.mock-signature`;
+})();
 document.addEventListener('DOMContentLoaded', function() {
 
     const logoLink = document.getElementById('logoLink');
@@ -91,6 +103,15 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     async function attemptLogin(email, password) {
+        if (MOCK_MODE && email && password) {
+            api.setToken(MOCK_TOKEN);
+            // Ustawienie mock cookie dla offline testowania
+            document.cookie = `authToken=${MOCK_TOKEN}; path=/; max-age=86400`;
+            console.log('Mock login successful - cookie set');
+            return true;
+        }
+
+
         try {
             const data = await api.post('/api/auth/login', {
                 username: email,
